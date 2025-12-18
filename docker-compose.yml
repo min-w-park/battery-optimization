@@ -1,0 +1,77 @@
+services:
+  # PostgreSQL for Asset Management Service
+  asset-db:
+    image: postgres:18-alpine
+    container_name: asset-db
+    environment:
+      POSTGRES_DB: asset_management
+      POSTGRES_USER: asset_user
+      POSTGRES_PASSWORD: asset_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - asset-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U asset_user -d asset_management"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL for Market Data Service
+  market-db:
+    image: postgres:18-alpine
+    container_name: market-db
+    environment:
+      POSTGRES_DB: market_data
+      POSTGRES_USER: market_user
+      POSTGRES_PASSWORD: market_pass
+    ports:
+      - "5433:5432"
+    volumes:
+      - market-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U market_user -d market_data"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL for Telemetry Service
+  telemetry-db:
+    image: postgres:18-alpine
+    container_name: telemetry-db
+    environment:
+      POSTGRES_DB: telemetry
+      POSTGRES_USER: telemetry_user
+      POSTGRES_PASSWORD: telemetry_pass
+    ports:
+      - "5434:5432"
+    volumes:
+      - telemetry-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U telemetry_user -d telemetry"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # NATS Event Bus (will be used in M4)
+  nats:
+    image: nats:2.10-alpine
+    container_name: nats
+    ports:
+      - "4222:4222"  # Client connections
+      - "8222:8222"  # HTTP monitoring
+    command: "--http_port 8222"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8222/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  asset-data:
+  market-data:
+  telemetry-data:
+
+networks:
+  default:
+    name: battery-optimization-network
