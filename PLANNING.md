@@ -4,14 +4,13 @@
 
 This document tracks progress on building a battery optimization system using microservices architecture and event-driven patterns.
 
-**Timeline**: 4 weeks (80 hours target)
 **Approach**: Milestone-based with flexible scheduling
 
 ---
 
 ## Milestones
 
-### ✅ M0: Project Setup (4-6 hours)
+### ✅ M0: Project Setup - COMPLETED
 **Goal**: Development environment and project structure ready
 
 **Tasks:**
@@ -24,34 +23,50 @@ This document tracks progress on building a battery optimization system using mi
 
 **Completion Criteria**:
 - ✅ `docker-compose up` starts DB
-- ✅ Project structure documented in STRUCTURE.md
+- ✅ Project structure documented in README
 
 ---
 
-### ⏳ M1: Event Storming + Domain Events (6-8 hours)
+### ✅ M1: Event Storming + Domain Events - COMPLETED
 **Goal**: Identify what happens in the system as events
 
 **Tasks:**
-- [ ] Event Storming session
-  - List all possible events in the system
-  - Sort chronologically
-  - Identify service boundaries
-- [ ] Define core events (5-10)
-  - Event names + fields
-  - Event schema (JSON)
-- [ ] Create `EVENTS.md` documentation
-- [ ] Plan for change management
-  - Event versioning strategy
-  - Backward compatibility for field additions
+- [x] Event Storming session
+  - [x] List all possible events in the system
+  - [x] Sort chronologically
+  - [x] Identify service boundaries
+- [x] Define core events (25 total)
+  - [x] Event names + fields
+  - [x] Event schema (JSON)
+- [x] Create `EVENTS.md` documentation
+- [x] Plan for change management
+  - [x] Event versioning strategy
+  - [x] Backward compatibility for field additions
 
 **Completion Criteria**:
-- `EVENTS.md` contains event catalog
-- Each event specifies publishers/subscribers
-- Event flow diagram created
+- ✅ `EVENTS.md` contains event catalog (25 events)
+- ✅ Each event specifies publishers/subscribers
+- ✅ Event flow diagrams created (7 scenarios)
+
+**Events Identified**:
+- Initialization: 5 events
+- Market Data: 3 events
+- Charging: 7 events
+- Discharging: 4 events
+- Conflict Resolution: 5 events
+- FCAS: 4 events
+- Future Work: Identified but deferred
+
+**Key Insights**:
+- Charging and discharging are separate capabilities (not unified)
+- Conflict resolution requires Economics Service
+- FCAS has contract level (planning) and dispatch level (execution)
+- Multiple stop conditions for operations
+- Battery cannot charge/discharge simultaneously
 
 ---
 
-### ⏳ M2: Asset Management Service (10-12 hours)
+### ⏳ M2: Asset Management Service 
 **Goal**: Build first service properly with DDD
 
 **Tasks:**
@@ -74,7 +89,7 @@ This document tracks progress on building a battery optimization system using mi
 
 ---
 
-### ⏳ M3: Market Data Service (10-12 hours)
+### ⏳ M3: Market Data Service
 **Goal**: Second service + DB-per-service pattern
 
 **Tasks:**
@@ -95,7 +110,7 @@ This document tracks progress on building a battery optimization system using mi
 
 ---
 
-### ⏳ M4: Event Bus Integration (NATS) (12-16 hours)
+### ⏳ M4: Event Bus Integration (NATS)
 **Goal**: Implement event-driven architecture
 
 **Tasks:**
@@ -116,7 +131,7 @@ This document tracks progress on building a battery optimization system using mi
 
 ---
 
-### ⏳ M5: Telemetry + Device Interface (16-20 hours)
+### ⏳ M5: Telemetry + Device Interface
 **Goal**: Hardware abstraction + real-time data
 
 **Tasks:**
@@ -144,7 +159,7 @@ This document tracks progress on building a battery optimization system using mi
 
 ---
 
-### ⏳ M6: Bidding Service (12-16 hours)
+### ⏳ M6: Bidding Service
 **Goal**: Real-time decision logic
 
 **Tasks:**
@@ -170,7 +185,7 @@ This document tracks progress on building a battery optimization system using mi
 
 ---
 
-### ⏳ M7: Documentation + Polish (8-12 hours)
+### ⏳ M7: Documentation + Polish
 **Goal**: Ready to share with Seb
 
 **Tasks:**
@@ -195,31 +210,8 @@ This document tracks progress on building a battery optimization system using mi
 
 ---
 
-## Time Tracking
-
-| Week | Good Weeks (20h) | Tough Weeks (9h) | Notes |
-|------|------------------|------------------|-------|
-| 1    |                  |                  |       |
-| 2    |                  |                  |       |
-| 3    |                  |                  |       |
-| 4    |                  |                  |       |
-
-**Estimated Total**: 78-102 hours
-**Target**: 80 hours (flexible due to childcare)
-
----
-
 ## Notes
 
 - Milestones are ordered but timing is flexible
 - Complete criteria before moving to next milestone
 - If stuck, document blocker and move to parallel task
-- Week 4 buffer for catching up if needed
-
----
-
-## Next Steps
-
-1. Complete M0 setup tasks
-2. Begin M1: Event Storming session
-3. Create EVENTS.md with initial event catalog
