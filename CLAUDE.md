@@ -29,7 +29,7 @@ Services communicate asynchronously via NATS event bus, maintaining loose coupli
 
 ### Infrastructure Setup
 
-Three PostgreSQL databases run in separate containers:
+Three PostgreSQL 18 databases run in separate containers:
 - `asset-db` on port 5432 (DB: asset_management, user: asset_user)
 - `market-db` on port 5433 (DB: market_data, user: market_user)
 - `telemetry-db` on port 5434 (DB: telemetry, user: telemetry_user)
@@ -37,6 +37,8 @@ Three PostgreSQL databases run in separate containers:
 NATS event bus:
 - Client connections: port 4222
 - HTTP monitoring: port 8222 (health check: http://localhost:8222/healthz)
+
+All infrastructure services are defined in docker-compose.yml and can be started with `docker-compose up -d`.
 
 ## Development Commands
 
@@ -65,7 +67,7 @@ docker-compose down -v
 ### Database Operations
 
 ```bash
-# Connect to Asset Management DB
+# Connect to Asset Management DB (PostgreSQL 18)
 docker exec -it asset-db psql -U asset_user -d asset_management
 
 # Connect to Market Data DB
@@ -74,9 +76,11 @@ docker exec -it market-db psql -U market_user -d market_data
 # Connect to Telemetry DB
 docker exec -it telemetry-db psql -U telemetry_user -d telemetry
 
-# Check database version
-docker exec -it asset-db psql -U asset_user -d asset_management -c "SELECT version();"
+# Check database version (should show PostgreSQL 18.x)
+docker exec asset-db psql -U asset_user -d asset_management -c "SELECT version();"
 ```
+
+**Note**: Remove the `-it` flag when running commands in scripts or CI/CD pipelines to avoid TTY errors.
 
 ### NATS Monitoring
 
@@ -123,24 +127,63 @@ Each service owns its domain model as aggregates with clear boundaries:
 
 ### Event Catalog
 
-Core domain events (see EVENTS.md when created):
+**25 domain events** are fully documented in [EVENTS.md](EVENTS.md). Key event categories:
+
+**Initialization (5 events)**:
 - `BatteryRegistered` - Asset Management publishes when battery added
-- `MarketPriceUpdated` - Market Data publishes on price changes
-- `BatteryStateChanged` - Telemetry publishes on SoC/power changes
-- `BiddingDecisionMade` - Bidding Service publishes charge/discharge decisions
-- `ChargeCommandIssued` - Device Interface executes via BatteryAdapter
+- `BatteryConnectionEstablished` - Device Interface confirms hardware connection
+- `BatteryTestStarted/Completed` - Health check test lifecycle
+- `BatteryReadyToOperate` - Battery approved for market participation
+
+**Market Data (3 events)**:
+- `AemoPriceForecastReceived` - AEMO 5-min/30-min predispatch forecasts
+- `InternalPriceForecastGenerated` - ML-based price predictions
+- `MarketPriceChangedSignificantly` - Conditional event for major price movements
+
+**Charging Operations (7 events)**:
+- `ChargingOpportunityDetected` - Bidding Service identifies profitable charging
+- `ChargingCommandIssued` - Command to start charging (manual/semi-auto/full-auto)
+- `ConflictDetected` - Charging conflicts with existing FCAS contract
+- `EconomicsCalculationRequested/Calculated` - ROI analysis for conflict resolution
+- `ConflictResolutionSuggested/Resolved` - Economics-driven decision
+- `ChargingStarted/Completed` - Charging lifecycle
+
+**Discharging Operations (4 events)**:
+- `DischargingOpportunityDetected` - High price + sufficient SoC validation
+- `DischargingCommandIssued` - Command with multiple stop conditions
+- `DischargingStarted/Completed` - Discharge lifecycle with reason codes
+
+**FCAS (Frequency Control) (4 events)**:
+- `FcasContractStarted/Ended` - Contract lifecycle (planning level)
+- `FcasDispatchReceived` - AEMO dispatch signal (execution level)
+- `FcasDispatchCompleted` - Compliance status tracking
+
+**Shared Events**:
+- `BatteryStateChanged` - Published every 1 second by Telemetry Service
+
+See [EVENTS.md](EVENTS.md) for complete event schemas, flow diagrams, and service responsibilities.
+
+## Documentation
+
+- **[STRUCTURE.md](STRUCTURE.md)**: Go project structure, service layout, and development workflow
+- **[EVENTS.md](EVENTS.md)**: Complete event catalog (25 events) with JSON schemas and flow diagrams
+- **[ARCHITECTURE.md](ARCHITECTURE.md)**: System architecture with mermaid diagrams, service boundaries, and design patterns
+- **[PLANNING.md](PLANNING.md)**: Milestone tracking and project status
 
 ## Service Development Pattern
 
 When implementing a new service:
 
-1. **Domain Model First**: Define aggregates, entities, value objects
+1. **Domain Model First**: Define aggregates, entities, value objects (see [STRUCTURE.md](STRUCTURE.md))
 2. **Repository Pattern**: Abstract data access with interfaces
 3. **REST API**: Expose service capabilities (CRUD operations)
-4. **Event Emission**: Publish domain events at aggregate boundaries
+4. **Event Emission**: Publish domain events at aggregate boundaries (see [EVENTS.md](EVENTS.md))
 5. **Event Subscription**: React to relevant events from other services
-6. **Dockerfile**: Containerize the service
-7. **docker-compose.yml**: Integrate into infrastructure
+6. **TDD**: Write tests first using table-driven test pattern
+7. **Dockerfile**: Containerize the service
+8. **docker-compose.yml**: Integrate into infrastructure
+
+Refer to [STRUCTURE.md](STRUCTURE.md) for detailed directory layout and service-specific patterns.
 
 ## Hardware Abstraction
 
@@ -157,17 +200,53 @@ Mock adapters simulate different vendor behaviors (TeslaLike, BYDLike) with Cust
 
 ## Project Status
 
-Currently in M0 (Project Setup). See PLANNING.md for milestone tracking:
-- M0: Infrastructure setup (Docker Compose, PostgreSQL, NATS)
-- M1: Event Storming + Domain Events documentation
-- M2-M6: Service implementation (Asset → Market → Events → Telemetry → Bidding)
-- M7: Documentation and polish
+**✅ Completed Milestones**:
+- **M0: Project Setup** - Infrastructure running (Docker Compose, PostgreSQL 18, NATS)
+- **M1: Event Storming** - 25 events documented with schemas and flow diagrams
+
+**🚧 Current**: M2 - Asset Management Service
+
+See [PLANNING.md](PLANNING.md) for detailed milestone tracking and task breakdowns.
+
+**Upcoming Milestones**:
+- M2: Asset Management Service (Battery domain model, REST API, TDD)
+- M3: Market Data Service (DB-per-service pattern)
+- M4: Event Bus Integration (NATS pub/sub)
+- M5: Telemetry + Device Interface (Hardware abstraction)
+- M6: Bidding Service (Arbitrage algorithm)
+- M7: Documentation polish
 
 ## Key Design Decisions
 
 - **Go as primary language**: Strong concurrency primitives, explicit error handling
+- **PostgreSQL 18**: Latest stable version with improved performance
 - **NATS over Kafka**: Lightweight, simpler ops for learning context
-- **DB-per-service**: True service isolation, independent schemas
+- **DB-per-service**: True service isolation, independent schemas (3 separate PostgreSQL instances)
 - **Event-driven over RPC**: Temporal decoupling, better fault isolation
 - **Mock adapters**: Hardware simulation without physical dependencies
 - **Australian NEM context**: Real-world market constraints and pricing patterns
+- **Standard Go Project Layout**: `cmd/`, `internal/`, `pkg/` structure for maintainability
+
+## Key Event-Driven Insights
+
+From the Event Storming session (M1), several critical architectural insights emerged:
+
+1. **Charging vs Discharging**: Separate capabilities with different constraints
+   - Charging: Fixed target SoC
+   - Discharging: Multiple stop conditions (price threshold, FCAS dispatch, SoC, duration)
+
+2. **FCAS Two-Level Architecture**:
+   - **Contract level** (planning): FcasContractStarted/Ended
+   - **Dispatch level** (execution): FcasDispatchReceived/Completed
+   - Must respond to dispatch within 1 second
+
+3. **Economics Service**: Critical for conflict resolution between arbitrage opportunities and existing contracts
+
+4. **Automation Levels**: MANUAL, SEMI_AUTO, FULL_AUTO - configurable per battery/site
+
+5. **Event Frequency**:
+   - `BatteryStateChanged`: Every 1 second (FCAS requirement)
+   - `AemoPriceForecastReceived`: Every 5 minutes (AEMO schedule)
+   - Conditional events only when thresholds exceeded
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed design patterns and [EVENTS.md](EVENTS.md) for complete event flows.
