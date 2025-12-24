@@ -35,22 +35,31 @@ This system simulates battery optimization for the Australian National Electrici
 
 ## 🚀 Quick Start
 
-```bash
-# Start all services
-docker-compose up
+**Prerequisites**: Docker, Docker Compose
 
-# Run tests
-make test
+```bash
+# Start all infrastructure (PostgreSQL 18 + NATS)
+docker-compose up -d
+
+# Check service health
+docker-compose ps
 
 # View logs
 docker-compose logs -f
+
+# Stop services
+docker-compose down
 ```
+
+For detailed setup and development commands, see [CLAUDE.md](./CLAUDE.md) and [STRUCTURE.md](./STRUCTURE.md).
 
 ## 📚 Documentation
 
-- [Planning & Milestones](./PLANNING.md)
-- [Domain Events](./EVENTS.md)
-- [Architecture Decisions](./docs/architecture/)
+- **[PLANNING.md](./PLANNING.md)** - Milestone tracking and project status (M0 ✅, M1 ✅)
+- **[EVENTS.md](./EVENTS.md)** - Complete event catalog (25 events with schemas and flow diagrams)
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System architecture with mermaid diagrams
+- **[STRUCTURE.md](./STRUCTURE.md)** - Go project structure and development workflow
+- **[CLAUDE.md](./CLAUDE.md)** - Guidance for Claude Code (development commands, patterns)
 
 ## 🎓 Learning Focus
 
@@ -66,12 +75,125 @@ Inspired by battery optimization platforms in the Australian energy market, such
 
 ## 📝 Current Status
 
-See [PLANNING.md](./PLANNING.md) for current progress and next steps.
+**✅ Completed**: M0 (Project Setup), M1 (Event Storming - 25 events documented)
+**🚧 In Progress**: M2 (Asset Management Service)
+
+See [PLANNING.md](./PLANNING.md) for detailed milestone tracking and next steps.
 
 ## 🔗 Tech Stack
 
-- **Language**: Go
-- **Event Bus**: NATS
-- **Database**: PostgreSQL (per service)
+- **Language**: Go 1.21+
+- **Event Bus**: NATS 2.10
+- **Database**: PostgreSQL 18 (DB-per-service: 3 independent instances)
 - **Containers**: Docker & Docker Compose
-- **Testing**: Go testing package with table-driven tests
+- **Testing**: Go testing package with table-driven tests (TDD approach)
+
+## 🎯 Business Value Alignment
+
+### 1. Solid Optimization Fundamentals (Current Focus)
+**Foundation First Approach**: Before bankability or fast deployment can deliver value, the optimization engine must work correctly.
+
+This project builds:
+- Accurate battery state management and constraints
+- Real-time market data integration
+- Optimal charging/discharging decisions
+- FCAS (Frequency Control Ancillary Services) support
+- Event-driven architecture for scalability
+
+**Why this matters**: Predictable revenue (bankability) is only possible with consistent, reliable optimization.
+
+---
+
+### 2. Future Enhancement: Bankability Layer
+
+Once optimization fundamentals are solid, the next phase would add financial predictability features:
+
+#### Revenue Predictability
+- Historical revenue tracking per operation
+- Multi-scenario forecasting (conservative, expected, optimistic)
+- Confidence intervals for investor reporting
+- Revenue volatility analysis
+
+#### Investment Metrics
+- ROI, IRR, Payback period calculations
+- Risk-adjusted returns
+- Expected vs. actual performance tracking
+
+#### Lender Dashboard
+- Standardized financial reporting for banks/investors
+- Compliance documentation
+- Real-time performance vs. forecast
+- "Bankability score" calculation
+
+**Business Impact**: Makes C&I batteries investable by providing lenders with predictable revenue projections backed by proven optimization performance.
+
+---
+
+### 3. Future Enhancement: Fast Deployment via AI Simulation
+
+#### The Pre-Sales Problem
+Traditional battery project sales require:
+- Manual site modeling (weeks)
+- Custom revenue projections
+- Multiple sales meetings
+- High touch sales process
+
+This limits deployment velocity.
+
+#### The Solution: Public AI-Driven Simulation Tool
+A self-service tool that transforms the sales pipeline:
+
+**User Flow:**
+1. **Upload historical data** (CSV from any battery/solar monitor)
+2. **AI normalizes data** (handles different formats, fills gaps)
+3. **Run optimization** (same engine as live operations)
+4. **See results instantly**: "You could have earned $45,000 more last year"
+
+**Architecture Advantage:**
+This project's **core optimization engine** is designed to be data-source agnostic:
+```
+┌─────────────────────────────┐
+│ Simulation Interface        │ ← Future: CSV upload
+├─────────────────────────────┤
+│ Live Operation Interface    │ ← Current: Real-time APIs
+├─────────────────────────────┤
+│ Optimization Engine (CORE)  │ ← This project
+│ • Market analysis           │
+│ • Constraint validation     │
+│ • Revenue calculation       │
+│ • FCAS integration          │
+└─────────────────────────────┘
+```
+
+**Dual Usage:**
+- **Simulation Mode**: Historical data → "What if" analysis (pre-sales)
+- **Live Mode**: Real-time telemetry → Actual optimization (production)
+
+**Business Impact:**
+- **Lead Magnet**: Prospects engage immediately with value
+- **Sales Efficiency**: Automate pre-sales modeling
+- **Trust Through Transparency**: Show actual historical performance
+- **Scalability**: Small team handles thousands of sites
+
+#### AI Translation Layer (Future)
+- **Data Preprocessing**: Normalize CSV columns from different OEMs
+- **Gap Filling**: Use historical weather/market data to complete datasets
+- **Quality Detection**: Flag poor quality data before simulation
+- **Privacy**: De-identification and secure upload protocols
+
+---
+
+## 🏗️ Design Philosophy
+
+**Build the Foundation Right:**
+This project focuses on creating a robust optimization engine that:
+1. **Works correctly** (accurate decisions)
+2. **Scales efficiently** (handles multiple sites)
+3. **Remains flexible** (adapts to different use cases)
+
+Once this foundation is solid:
+- **Bankability features** add financial predictability on top
+- **Simulation tools** reuse the same optimization logic for pre-sales
+- **Multi-OEM support** (via hardware abstraction layer) enables universal deployment
+
+**Key Insight**: The optimization engine is the "brain" - whether analyzing historical data (simulation) or controlling live batteries (production), the core logic remains the same. Build it once, use it everywhere.
