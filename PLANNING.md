@@ -150,24 +150,102 @@ This document tracks progress on building a battery optimization system using mi
 
 ---
 
-### ⏳ M3: Market Data Service
+### ✅ M3: Market Data Service - COMPLETED (2025-12-29)
 **Goal**: Second service + DB-per-service pattern
 
-**Tasks:**
-- [ ] Market domain model
-  - Price (timestamp, value, interval)
-  - Time-series data storage
-- [ ] Mock AEMO price data generator
-- [ ] REST API
-  - `GET /prices?from=X&to=Y` - Query prices
-  - `POST /prices` - Input price data
-- [ ] Independent PostgreSQL database
-- [ ] Prepare `MarketPriceUpdated` event
+**Documentation**:
+- [M3 Overview](./docs/milestones/M3-OVERVIEW.md) - Big picture and learning objectives
+- [Domain Specification](./docs/milestones/M3-DOMAIN-SPEC.md) - MarketPrice aggregate and validation rules
+- [API Specification](./docs/milestones/M3-API-SPEC.md) - REST endpoints and DTOs
+- [Implementation Checklist](./docs/milestones/M3-CHECKLIST.md) - Step-by-step tasks
+- [Service README](./services/market-data/README.md) - Complete service documentation
+
+**Phases**:
+- [x] **Phase 0**: M3 Milestone Documentation (0.5-1h)
+  - ✅ M3-OVERVIEW.md - Service architecture and learning objectives
+  - ✅ M3-DOMAIN-SPEC.md - MarketPrice aggregate with 8 validation rules
+  - ✅ M3-API-SPEC.md - REST API endpoints and examples
+  - ✅ M3-CHECKLIST.md - Step-by-step implementation guide
+
+- [x] **Phase 1**: Project Setup (0.5-1h)
+  - ✅ Directory structure (Hexagonal Architecture: cmd, internal/domain, internal/ports, internal/adapters)
+  - ✅ Go 1.23 module initialization
+  - ✅ Database migrations (golang-migrate v4.18.1)
+  - ✅ Infrastructure verification (PostgreSQL 18 on port 5433)
+
+- [x] **Phase 2**: Domain Layer (2-3h) - **TDD First!**
+  - ✅ Domain errors (errors.go)
+  - ✅ MarketPrice aggregate with comprehensive tests (price_test.go → price.go)
+  - ✅ 8 validation rules enforced (price, region, interval alignment, etc.)
+  - ✅ Interval alignment validation (5-min and 30-min boundaries)
+  - ✅ **96.7% test coverage**
+
+- [x] **Phase 3**: Repository Layer (2-3h)
+  - ✅ Repository interface (ports/repository.go)
+  - ✅ PostgreSQL implementation with integration tests
+  - ✅ Time-range queries with filters (region, interval_type)
+  - ✅ Pagination support (limit, offset)
+  - ✅ Time-series optimized indexes
+  - ✅ **91.1% test coverage**
+
+- [x] **Phase 4**: HTTP API Layer (2-3h)
+  - ✅ DTOs (CreateMarketPriceRequest, MarketPriceResponse, ErrorResponse)
+  - ✅ HTTP handlers with comprehensive tests (using manual mocks)
+  - ✅ Routes setup with gorilla/mux (POST, GET by ID, GET list with time-range)
+  - ✅ ISO 8601 timestamp handling
+  - ✅ **66.0% test coverage**
+
+- [x] **Phase 5**: Main Application (1h)
+  - ✅ Dependency injection (cmd/server/main.go)
+  - ✅ Configuration (environment variables)
+  - ✅ Dockerfile (multi-stage build with Go 1.23)
+  - ✅ docker-compose integration with market-db on port 8081
+
+- [x] **Phase 6**: Integration Testing (1h)
+  - ✅ End-to-end tests with curl (POST, GET, LIST with time-range)
+  - ✅ Database verification (data persists correctly)
+  - ✅ Error case testing (negative price, invalid region, duplicate interval)
+  - ✅ Time-range query testing
+  - ✅ Filter testing (region, interval_type)
+  - ✅ Pagination testing (limit, offset)
+  - ✅ DB-per-service isolation verified
+
+- [x] **Phase 7**: Polish & Documentation (1h)
+  - ✅ Code formatting (go fmt, go vet)
+  - ✅ Coverage verification (**84.6% overall**)
+  - ✅ README created with comprehensive documentation
+  - ✅ PLANNING.md updated
+  - ✅ All phases complete
+
+**Key Learning Objectives**:
+- ✅ Time-series data modeling (interval alignment)
+- ✅ DB-per-service pattern (market-db separate from asset-db)
+- ✅ Time-range queries with multiple filters
+- ✅ AEMO market data concepts (5MIN/30MIN predispatch)
+- ✅ Replicating M2 patterns successfully
 
 **Completion Criteria**:
-- 2 services running independently
-- Market data query API functional
-- DB-per-service isolation verified
+- ✅ All unit tests pass (domain, repository, handler)
+- ✅ Test coverage **84.6%** overall (domain: 96.7%, repository: 91.1%, http: 66.0%)
+- ✅ Service runs in Docker on port 8081
+- ✅ Can create market prices via curl
+- ✅ Can retrieve prices by ID
+- ✅ Can query prices by time range
+- ✅ Filtering by region and interval_type works
+- ✅ Pagination works correctly
+- ✅ Validation errors return 400 with details
+- ✅ Duplicate interval returns 409 Conflict
+- ✅ Data persists in PostgreSQL
+- ✅ 2 services running independently (asset-management:8080, market-data:8081)
+- ✅ DB-per-service isolation verified (asset-db on 5432, market-db on 5433)
+- ✅ Service README with comprehensive docs
+
+**Out of Scope** (deferred to later milestones):
+- Event publishing (M4)
+- AEMO data ingestion automation
+- Price forecast calculations
+- Authentication/authorization
+- Update/Delete operations
 
 ---
 

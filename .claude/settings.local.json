@@ -6,7 +6,23 @@
       "Bash(curl:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(go mod init:*)",
+      "Bash(go get:*)",
+      "Bash(go test:*)",
+      "Bash(go mod tidy:*)",
+      "Bash(docker-compose build:*)",
+      "Bash(docker-compose up:*)",
+      "Bash(docker-compose logs:*)",
+      "Bash(BATTERY_ID=\"9959b197-2b4d-4d25-8f38-592e130f92e2\")",
+      "Bash(go fmt:*)",
+      "Bash(go vet:*)",
+      "Bash(go tool cover:*)",
+      "Bash(git tag:*)",
+      "Bash(tree:*)",
+      "Bash(docker-compose restart:*)",
+      "Bash(python3:*)",
+      "Bash(go clean:*)"
     ]
   }
 }

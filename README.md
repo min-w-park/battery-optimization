@@ -104,7 +104,7 @@ See [PLANNING.md](./PLANNING.md) for detailed milestone tracking and next steps.
 
 ## 🔗 Tech Stack
 
-- **Language**: Go 1.21+
+- **Language**: Go 1.23+
 - **Event Bus**: NATS 2.10
 - **Database**: PostgreSQL 18 (DB-per-service: 3 independent instances)
 - **Containers**: Docker & Docker Compose
