@@ -3,9 +3,8 @@
 ## 📋 How to Use This Checklist
 
 **⚠️ CRITICAL: READ THESE FIRST**:
-1. [TDD Guide](../guides/TDD-GUIDE.md) - Test-Driven Development (Kent Beck style)
-2. [CONTRIBUTING.md](../../CONTRIBUTING.md) - Development philosophy and workflow
-3. [Battery Domain Skill](../../.claude/skills/BATTERY-DOMAIN-SKILL.md) - Domain concepts
+1. [CONTRIBUTING.md](../../CONTRIBUTING.md) - Development philosophy and TDD workflow (Kent Beck style)
+2. [Battery Domain Skill](../../.claude/skills/BATTERY-DOMAIN-SKILL.md) - Domain concepts
 
 **Then follow this checklist**:
 1. Work through tasks in order (top to bottom)

@@ -203,8 +203,7 @@ Domain → Repository → HTTP Handler
 - [Checklist](./M2-CHECKLIST.md) - Step-by-step tasks
 
 **Development Guides** (READ THESE FIRST):
-- [TDD Guide](../guides/TDD-GUIDE.md) - Test-Driven Development (Kent Beck style)
-- [CONTRIBUTING.md](../../CONTRIBUTING.md) - Development philosophy and workflow
+- [CONTRIBUTING.md](../../CONTRIBUTING.md) - Development philosophy and TDD workflow (Kent Beck style)
 - [Battery Domain Skill](../../.claude/skills/BATTERY-DOMAIN-SKILL.md) - Domain concepts
 
 ## 🎯 Success Criteria

@@ -1,57 +1,65 @@
 # Contributing to Battery Optimization System
 
+## Quick Start
+
+**New to the project?**
+1. Read [Skills](./.claude/skills/) for detailed coding standards
+2. Check [M2 Overview](./docs/milestones/M2-OVERVIEW.md) for current milestone
+3. Follow the [Checklist](./docs/milestones/M2-CHECKLIST.md)
+
+---
+
 ## Development Philosophy
 
-This project follows **Test-Driven Development (TDD)** as described by Kent Beck.
+This project follows **Modern Software Engineering** practices:
 
-**IMPORTANT**: Before writing any code, read our [TDD Guide](./docs/guides/TDD-GUIDE.md).
+- **TDD (Test-Driven Development)** - Tests before code
+- **DDD (Domain-Driven Design)** - Domain at the center
+- **Hexagonal Architecture** - Infrastructure serves domain
+- **Event-Driven** - Services communicate via events
 
----
-
-## The Golden Rule
-
-### Red → Green → Refactor
-
-**Always** write tests before implementation:
-
-1. ❌ **RED**: Write a failing test
-2. ✅ **GREEN**: Write minimal code to pass
-3. ♻️ **REFACTOR**: Clean up while tests protect you
+**Detailed guides:** See `.claude/skills/` directory
 
 ---
 
-## Required Reading
+## The TDD Workflow
 
-- [TDD Guide (Kent Beck Style)](./docs/guides/TDD-GUIDE.md) - **READ THIS FIRST**
-- [Domain Specification](./docs/milestones/M2-DOMAIN-SPEC.md) - What to build
-- [API Specification](./docs/milestones/M2-API-SPEC.md) - How API should work
+```
+1. ❌ RED:  Write a failing test
+2. ✅ GREEN: Write minimal code to pass
+3. ♻️  REFACTOR: Clean up (tests protect you)
+4. 🔁 REPEAT: Next behavior
+```
 
----
-
-## Code Review Checklist
-
-Before submitting any code, verify:
-
-- [ ] Tests were written **before** implementation
-- [ ] All tests pass (`go test ./...`)
-- [ ] Test coverage > 80% (`go test -cover ./...`)
-- [ ] Code follows [TDD patterns](./docs/guides/TDD-GUIDE.md#kent-becks-test-patterns)
-- [ ] Tests use Arrange-Act-Assert structure
-- [ ] One test tests one thing
-- [ ] Tests are readable (clear Given-When-Then)
+Full guide: [TDD-SKILL](./.claude/skills/TDD-SKILL.md)
 
 ---
 
-## Workflow Example
+## Project Structure
 
-### Starting a New Feature
+```
+services/asset-management/
+├── cmd/server/           # Entry point
+├── internal/
+│   ├── domain/          # Pure business logic (no dependencies)
+│   ├── ports/           # Interfaces
+│   └── adapters/        # Implementations (HTTP, PostgreSQL)
+```
+
+Full guide: [DDD-PATTERNS-SKILL](./.claude/skills/DDD-PATTERNS-SKILL.md)
+
+---
+
+## Development Workflow
+
+### Starting a Feature
 
 ```bash
 # 1. Read the spec
 cat docs/milestones/M2-DOMAIN-SPEC.md
 
-# 2. Write the test first
-# Example: internal/domain/battery_test.go
+# 2. Write test FIRST
+# internal/domain/battery_test.go
 func TestNewBattery_ValidInput(t *testing.T) {
     battery, err := NewBattery(200.0, 100.0, ...)
     assert.NoError(t, err)
@@ -60,11 +68,8 @@ func TestNewBattery_ValidInput(t *testing.T) {
 # 3. Run test (should FAIL)
 go test ./internal/domain/...
 
-# 4. Write minimal code to pass
-# Example: internal/domain/battery.go
-func NewBattery(...) (*Battery, error) {
-    return &Battery{...}, nil
-}
+# 4. Write minimal implementation
+# internal/domain/battery.go
 
 # 5. Run test (should PASS)
 go test ./internal/domain/...
@@ -78,87 +83,49 @@ git commit -m "feat(domain): add NewBattery constructor"
 
 ---
 
-## Testing Conventions
+## Using Claude Code (AI Pair Programming)
 
-### File Structure
+Claude Code automatically loads guides from `.claude/skills/`
 
+**Good prompts:**
 ```
-internal/domain/
-├── battery.go        # Implementation
-└── battery_test.go   # Tests (same package)
-```
+"Implement Battery.Validate() following TDD-SKILL and BATTERY-DOMAIN-SKILL"
 
-### Test Naming
+"Create POST /batteries endpoint following API-DESIGN-SKILL"
 
-```go
-// Pattern: Test<Struct>_<Method>_<Scenario>_<ExpectedOutcome>
-func TestBattery_Validate_NegativeCapacity_ReturnsError(t *testing.T)
-func TestNewBattery_ValidInput_ReturnsNoBatteryNoError(t *testing.T)
+"Write repository tests using GO-CONVENTIONS-SKILL"
 ```
 
-### Test Structure (Always)
-
-```go
-func TestSomething(t *testing.T) {
-    // Arrange (Given) - Setup
-    input := ...
-    expected := ...
-    
-    // Act (When) - Execute
-    result, err := DoSomething(input)
-    
-    // Assert (Then) - Verify
-    assert.NoError(t, err)
-    assert.Equal(t, expected, result)
-}
-```
+**Reference specific skills explicitly for best results.**
 
 ---
 
-## AI Pair Programming
+## Code Standards
 
-When using Claude Code or similar AI assistants:
-
-### ✅ DO
-
-1. **Share this CONTRIBUTING.md** with the AI
-2. **Reference TDD-GUIDE.md** explicitly
-3. **Ask for tests first**: "Write the test for X following our TDD guide"
-4. **Review AI-generated code**: Understand every line
-5. **Request explanations**: "Why did you structure it this way?"
-
-### ❌ DON'T
-
-1. Accept code without tests
-2. Let AI write implementation before tests
-3. Skip the refactor step
-4. Blindly copy-paste without understanding
+**All detailed in Skills:**
+- [TDD-SKILL](./.claude/skills/TDD-SKILL.md) - Red-Green-Refactor
+- [GO-CONVENTIONS-SKILL](./.claude/skills/GO-CONVENTIONS-SKILL.md) - Go idioms
+- [DDD-PATTERNS-SKILL](./.claude/skills/DDD-PATTERNS-SKILL.md) - Domain design
+- [BATTERY-DOMAIN-SKILL](./.claude/skills/BATTERY-DOMAIN-SKILL.md) - Domain knowledge
+- [API-DESIGN-SKILL](./.claude/skills/API-DESIGN-SKILL.md) - REST APIs
 
 ---
 
-## Example AI Prompt
+## Before Committing
 
+```bash
+# Format
+go fmt ./...
+
+# Vet
+go vet ./...
+
+# Tests
+go test ./...
+
+# Coverage (aim for >80%)
+go test -cover ./...
 ```
-I need to implement Battery.Validate() method.
-
-Please follow our TDD approach (docs/guides/TDD-GUIDE.md):
-1. First, write the test for validating positive capacity
-2. Make it fail
-3. Write minimal code to pass
-4. Then we'll add more validation tests one at a time
-
-Refer to docs/milestones/M2-DOMAIN-SPEC.md for validation rules.
-```
-
----
-
-## Go Conventions
-
-- Use `gofmt` before committing
-- Run `go vet ./...` to catch issues
-- Follow [Effective Go](https://go.dev/doc/effective_go)
-- Use table-driven tests for variations
-- Keep functions small (< 20 lines ideal)
 
 ---
 
@@ -167,22 +134,35 @@ Refer to docs/milestones/M2-DOMAIN-SPEC.md for validation rules.
 Follow [Conventional Commits](https://www.conventionalcommits.org/):
 
 ```
-feat(domain): add Battery aggregate with validation
-test(domain): add validation tests for Battery
-refactor(domain): extract validation helpers
-fix(api): handle validation errors correctly
+feat(domain): add Battery aggregate
+test(domain): add validation tests
+refactor(api): extract DTO conversion
+fix(repo): handle duplicate IDs
 docs(readme): update API examples
 ```
 
 ---
 
-## Questions?
+## Pull Request Checklist
 
-- Read the [TDD Guide](./docs/guides/TDD-GUIDE.md) again
-- Check [Domain Spec](./docs/milestones/M2-DOMAIN-SPEC.md)
-- Review [API Spec](./docs/milestones/M2-API-SPEC.md)
-- Look at existing tests as examples
+- [ ] Tests written before implementation
+- [ ] All tests pass
+- [ ] Coverage >80%
+- [ ] Follows patterns in Skills
+- [ ] Code formatted (`go fmt`)
+- [ ] No lint errors (`go vet`)
+- [ ] Conventional commit messages
 
 ---
 
-**Remember**: Tests are not overhead. They're the design tool that makes great code possible.
+## Getting Help
+
+**For coding standards:** Check `.claude/skills/`  
+**For domain rules:** See `BATTERY-DOMAIN-SKILL.md`  
+**For current tasks:** See `docs/milestones/M2-CHECKLIST.md`  
+**For architecture:** See `docs/ARCHITECTURE.md`
+
+---
+
+**Happy coding! 🚀**
+

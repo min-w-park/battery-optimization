@@ -65,7 +65,7 @@ For detailed setup and development commands, see [CLAUDE.md](./CLAUDE.md) and [Q
 - **[CONTRIBUTING.md](./CONTRIBUTING.md)** - **Development philosophy and TDD workflow**
 
 **Development Guides**:
-- **[TDD Guide](./docs/guides/TDD-GUIDE.md)** - Test-Driven Development (Kent Beck style) - **READ FIRST**
+- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Development philosophy and TDD workflow (Kent Beck style) - **READ FIRST**
 - **[Domain Guide](./.claude/skills/BATTERY-DOMAIN-SKILL.md)** - Battery domain concepts and validation rules
 
 **M2 Milestone Documentation**:

@@ -99,7 +99,7 @@ curl http://localhost:8222/connz
 
 ### Test-Driven Development (TDD)
 
-**CRITICAL**: This project follows strict TDD (Test-Driven Development). See [TDD Guide](docs/guides/TDD-GUIDE.md) and [CONTRIBUTING.md](CONTRIBUTING.md).
+**CRITICAL**: This project follows strict TDD (Test-Driven Development). See [CONTRIBUTING.md](CONTRIBUTING.md) for complete workflow and [.claude/skills/TDD-SKILL.md](.claude/skills/TDD-SKILL.md) for detailed patterns.
 
 **The Golden Rule**: Red → Green → Refactor
 1. ❌ Write a failing test
@@ -181,7 +181,7 @@ See [EVENTS.md](EVENTS.md) for complete event schemas, flow diagrams, and servic
 - **[CONTRIBUTING.md](CONTRIBUTING.md)**: Development philosophy and workflow (TDD, code review)
 
 **Development Guides**:
-- **[TDD Guide](docs/guides/TDD-GUIDE.md)**: Test-Driven Development (Kent Beck style) - **READ THIS FIRST**
+- **[CONTRIBUTING.md](CONTRIBUTING.md)**: Development philosophy and TDD workflow (Kent Beck style) - **READ THIS FIRST**
 - **[Battery Domain Skill](.claude/skills/BATTERY-DOMAIN-SKILL.md)**: Domain concepts, validation rules, examples
 - **[TDD Skill](.claude/skills/TDD-SKILL.md)**: TDD workflow, patterns, and anti-patterns
 
