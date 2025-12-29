@@ -67,6 +67,23 @@ services:
       timeout: 5s
       retries: 5
 
+  # Asset Management Service (M2)
+  asset-management:
+    build:
+      context: ./services/asset-management
+      dockerfile: Dockerfile
+    container_name: asset-management
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: postgres://asset_user:asset_pass@asset-db:5432/asset_management?sslmode=disable
+      PORT: "8080"
+      LOG_LEVEL: info
+    depends_on:
+      asset-db:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   asset-data:
   market-data:
