@@ -66,26 +66,82 @@ This document tracks progress on building a battery optimization system using mi
 
 ---
 
-### ⏳ M2: Asset Management Service 
-**Goal**: Build first service properly with DDD
+### ⏳ M2: Asset Management Service (10-12 hours)
+**Goal**: Build first service using DDD, TDD, and Hexagonal Architecture
 
-**Tasks:**
-- [ ] Domain model design (Battery Aggregate)
-  - Battery ID, Capacity, Max Power, Ramp Rate
-  - Constraint validation
-- [ ] Repository pattern implementation
-- [ ] REST API (CRUD)
-  - `POST /batteries` - Register battery
-  - `GET /batteries/:id` - Query specs
-- [ ] TDD: Minimum 3 test cases
-- [ ] Dockerfile + docker-compose integration
-- [ ] Prepare `BatteryRegistered` event (emit in M4)
+**Documentation**:
+- [M2 Overview](./docs/milestones/M2-OVERVIEW.md) - Big picture and learning objectives
+- [Domain Specification](./docs/milestones/M2-DOMAIN-SPEC.md) - Battery aggregate and validation rules
+- [API Specification](./docs/milestones/M2-API-SPEC.md) - REST endpoints and DTOs
+- [Implementation Checklist](./docs/milestones/M2-CHECKLIST.md) - Step-by-step tasks
+
+**Phases**:
+- [ ] **Phase 1**: Project Setup (0.5-1h)
+  - Directory structure (cmd, internal/domain, internal/ports, internal/adapters)
+  - Go module initialization
+  - Database migration (batteries table)
+
+- [ ] **Phase 2**: Domain Layer (2-3h) - **TDD First!**
+  - Domain errors (errors.go)
+  - Battery aggregate with tests (battery_test.go → battery.go)
+  - Validation rules (11 business rules)
+  - Constraints validation
+  - >80% test coverage
+
+- [ ] **Phase 3**: Repository Layer (2-3h)
+  - Repository interface (ports/repository.go)
+  - PostgreSQL implementation with tests
+  - Error mapping (SQL → domain errors)
+
+- [ ] **Phase 4**: HTTP API Layer (2-3h)
+  - DTOs (CreateBatteryRequest, BatteryResponse)
+  - HTTP handlers with tests (using mocks)
+  - Routes setup (POST /batteries, GET /batteries/:id, GET /batteries)
+  - Error response formatting
+
+- [ ] **Phase 5**: Main Application (1-2h)
+  - Dependency injection (cmd/server/main.go)
+  - Configuration (environment variables)
+  - Dockerfile (multi-stage build)
+  - docker-compose integration
+
+- [ ] **Phase 6**: Integration Testing (1-2h)
+  - End-to-end tests with curl
+  - Database verification
+  - Error case testing
+  - API documentation with examples
+
+- [ ] **Phase 7**: Polish & Documentation (1h)
+  - Code formatting (go fmt, go vet)
+  - Coverage verification
+  - README updates
+  - Git commit and tag (v0.1.0-m2)
+
+**Key Learning Objectives**:
+- Domain-Driven Design (pure domain, no infrastructure leaking)
+- Test-Driven Development (write tests first, >80% coverage)
+- Hexagonal Architecture (ports & adapters pattern)
+- Repository Pattern (abstract data access)
+- Clean Code (SRP, DIP, separation of concerns)
 
 **Completion Criteria**:
-- API works and tests pass
-- Can register/query batteries via Postman/curl
-- Validation errors returned for constraint violations
-- Event emission points marked in code comments
+- ✅ All unit tests pass (domain, repository, handler)
+- ✅ Test coverage > 80%
+- ✅ Service runs in Docker
+- ✅ Can register battery via curl
+- ✅ Can retrieve battery by ID
+- ✅ Can list batteries with filters
+- ✅ Validation errors return 400 with details
+- ✅ Code follows Go conventions
+- ✅ API documented with curl examples
+- ✅ Manual end-to-end testing complete
+
+**Out of Scope** (deferred to later milestones):
+- Event publishing (M4)
+- Authentication/authorization
+- Update/Delete operations
+- Complex queries
+- Caching
 
 ---
 
