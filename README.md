@@ -88,8 +88,17 @@ Inspired by battery optimization platforms in the Australian energy market, such
 
 ## 📝 Current Status
 
-**✅ Completed**: M0 (Project Setup), M1 (Event Storming - 25 events documented)
-**🚧 In Progress**: M2 (Asset Management Service)
+**✅ Completed Milestones**:
+- **M0**: Project Setup - Infrastructure running (Docker Compose, PostgreSQL 18, NATS)
+- **M1**: Event Storming - 25 events documented with schemas and flow diagrams
+- **M2**: Asset Management Service - Production-ready REST API with TDD and Hexagonal Architecture
+  - 79.8% test coverage (domain: 96.7%)
+  - 3 RESTful endpoints (POST, GET, LIST)
+  - PostgreSQL persistence with automatic migrations
+  - Docker deployment ready
+  - Comprehensive documentation
+
+**🚧 Next Up**: M3 (Market Data Service)
 
 See [PLANNING.md](./PLANNING.md) for detailed milestone tracking and next steps.
 
