@@ -2,11 +2,18 @@
 
 ## 📋 How to Use This Checklist
 
+**⚠️ CRITICAL: READ THESE FIRST**:
+1. [TDD Guide](../guides/TDD-GUIDE.md) - Test-Driven Development (Kent Beck style)
+2. [CONTRIBUTING.md](../../CONTRIBUTING.md) - Development philosophy and workflow
+3. [Battery Domain Skill](../../.claude/skills/BATTERY-DOMAIN-SKILL.md) - Domain concepts
+
+**Then follow this checklist**:
 1. Work through tasks in order (top to bottom)
-2. Check off `[ ]` boxes as you complete each task
-3. Each phase should take 2-3 hours
-4. If stuck, refer to detailed spec documents
-5. Commit after each major milestone
+2. **Write tests BEFORE implementation** (Red → Green → Refactor)
+3. Check off `[ ]` boxes as you complete each task
+4. Each phase should take 2-3 hours
+5. If stuck, refer to detailed spec documents
+6. Commit after each major milestone
 
 ---
 

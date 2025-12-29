@@ -55,12 +55,18 @@ For detailed setup and development commands, see [CLAUDE.md](./CLAUDE.md) and [Q
 
 ## 📚 Documentation
 
+**Core Documentation**:
 - **[PLANNING.md](./PLANNING.md)** - Milestone tracking and project status (M0 ✅, M1 ✅)
 - **[EVENTS.md](./EVENTS.md)** - Complete event catalog (25 events with schemas and flow diagrams)
 - **[ARCHITECTURE.md](./docs/ARCHITECTURE.md)** - System architecture with mermaid diagrams
 - **[STRUCTURE.md](./docs/STRUCTURE.md)** - Go project structure and development workflow
 - **[QUICKSTART.md](./docs/QUICKSTART.md)** - Quick start guide for development setup
 - **[CLAUDE.md](./CLAUDE.md)** - Guidance for Claude Code (development commands, patterns)
+- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - **Development philosophy and TDD workflow**
+
+**Development Guides**:
+- **[TDD Guide](./docs/guides/TDD-GUIDE.md)** - Test-Driven Development (Kent Beck style) - **READ FIRST**
+- **[Domain Guide](./.claude/skills/BATTERY-DOMAIN-SKILL.md)** - Battery domain concepts and validation rules
 
 **M2 Milestone Documentation**:
 - **[M2 Overview](./docs/milestones/M2-OVERVIEW.md)** - Big picture and learning objectives

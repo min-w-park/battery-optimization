@@ -99,6 +99,13 @@ curl http://localhost:8222/connz
 
 ### Test-Driven Development (TDD)
 
+**CRITICAL**: This project follows strict TDD (Test-Driven Development). See [TDD Guide](docs/guides/TDD-GUIDE.md) and [CONTRIBUTING.md](CONTRIBUTING.md).
+
+**The Golden Rule**: Red → Green → Refactor
+1. ❌ Write a failing test
+2. ✅ Write minimal code to pass
+3. ♻️ Refactor while tests protect you
+
 Tests are written first, driving implementation. Use table-driven tests following Go conventions:
 
 ```go
@@ -165,11 +172,18 @@ See [EVENTS.md](EVENTS.md) for complete event schemas, flow diagrams, and servic
 
 ## Documentation
 
+**Core Documentation**:
 - **[STRUCTURE.md](docs/STRUCTURE.md)**: Go project structure, service layout, and development workflow
 - **[EVENTS.md](EVENTS.md)**: Complete event catalog (25 events) with JSON schemas and flow diagrams
 - **[ARCHITECTURE.md](docs/ARCHITECTURE.md)**: System architecture with mermaid diagrams, service boundaries, and design patterns
 - **[PLANNING.md](PLANNING.md)**: Milestone tracking and project status
 - **[QUICKSTART.md](docs/QUICKSTART.md)**: Quick start guide for development setup
+- **[CONTRIBUTING.md](CONTRIBUTING.md)**: Development philosophy and workflow (TDD, code review)
+
+**Development Guides**:
+- **[TDD Guide](docs/guides/TDD-GUIDE.md)**: Test-Driven Development (Kent Beck style) - **READ THIS FIRST**
+- **[Battery Domain Skill](.claude/skills/BATTERY-DOMAIN-SKILL.md)**: Domain concepts, validation rules, examples
+- **[TDD Skill](.claude/skills/TDD-SKILL.md)**: TDD workflow, patterns, and anti-patterns
 
 **M2 Milestone Documentation**:
 - **[M2 Overview](docs/milestones/M2-OVERVIEW.md)**: Big picture and learning objectives

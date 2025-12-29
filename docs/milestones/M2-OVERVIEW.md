@@ -197,9 +197,15 @@ Domain → Repository → HTTP Handler
 
 ## 🔗 Related Documents
 
+**M2 Specifications**:
 - [Domain Specification](./M2-DOMAIN-SPEC.md) - Battery aggregate details
 - [API Specification](./M2-API-SPEC.md) - REST API contract
 - [Checklist](./M2-CHECKLIST.md) - Step-by-step tasks
+
+**Development Guides** (READ THESE FIRST):
+- [TDD Guide](../guides/TDD-GUIDE.md) - Test-Driven Development (Kent Beck style)
+- [CONTRIBUTING.md](../../CONTRIBUTING.md) - Development philosophy and workflow
+- [Battery Domain Skill](../../.claude/skills/BATTERY-DOMAIN-SKILL.md) - Domain concepts
 
 ## 🎯 Success Criteria
 
