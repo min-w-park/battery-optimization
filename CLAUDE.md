@@ -165,16 +165,23 @@ See [EVENTS.md](EVENTS.md) for complete event schemas, flow diagrams, and servic
 
 ## Documentation
 
-- **[STRUCTURE.md](STRUCTURE.md)**: Go project structure, service layout, and development workflow
+- **[STRUCTURE.md](docs/STRUCTURE.md)**: Go project structure, service layout, and development workflow
 - **[EVENTS.md](EVENTS.md)**: Complete event catalog (25 events) with JSON schemas and flow diagrams
-- **[ARCHITECTURE.md](ARCHITECTURE.md)**: System architecture with mermaid diagrams, service boundaries, and design patterns
+- **[ARCHITECTURE.md](docs/ARCHITECTURE.md)**: System architecture with mermaid diagrams, service boundaries, and design patterns
 - **[PLANNING.md](PLANNING.md)**: Milestone tracking and project status
+- **[QUICKSTART.md](docs/QUICKSTART.md)**: Quick start guide for development setup
+
+**M2 Milestone Documentation**:
+- **[M2 Overview](docs/milestones/M2-OVERVIEW.md)**: Big picture and learning objectives
+- **[M2 Domain Spec](docs/milestones/M2-DOMAIN-SPEC.md)**: Battery aggregate and validation rules
+- **[M2 API Spec](docs/milestones/M2-API-SPEC.md)**: REST endpoints and DTOs
+- **[M2 Checklist](docs/milestones/M2-CHECKLIST.md)**: Step-by-step implementation guide
 
 ## Service Development Pattern
 
 When implementing a new service:
 
-1. **Domain Model First**: Define aggregates, entities, value objects (see [STRUCTURE.md](STRUCTURE.md))
+1. **Domain Model First**: Define aggregates, entities, value objects (see [STRUCTURE.md](docs/STRUCTURE.md))
 2. **Repository Pattern**: Abstract data access with interfaces
 3. **REST API**: Expose service capabilities (CRUD operations)
 4. **Event Emission**: Publish domain events at aggregate boundaries (see [EVENTS.md](EVENTS.md))
@@ -183,7 +190,9 @@ When implementing a new service:
 7. **Dockerfile**: Containerize the service
 8. **docker-compose.yml**: Integrate into infrastructure
 
-Refer to [STRUCTURE.md](STRUCTURE.md) for detailed directory layout and service-specific patterns.
+Refer to [STRUCTURE.md](docs/STRUCTURE.md) for detailed directory layout and service-specific patterns.
+
+For M2 (Asset Management Service), follow the detailed guide in [M2 Checklist](docs/milestones/M2-CHECKLIST.md).
 
 ## Hardware Abstraction
 
@@ -249,4 +258,4 @@ From the Event Storming session (M1), several critical architectural insights em
    - `AemoPriceForecastReceived`: Every 5 minutes (AEMO schedule)
    - Conditional events only when thresholds exceeded
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed design patterns and [EVENTS.md](EVENTS.md) for complete event flows.
+See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed design patterns and [EVENTS.md](EVENTS.md) for complete event flows.
