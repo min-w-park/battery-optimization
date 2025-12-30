@@ -56,7 +56,7 @@ For detailed setup and development commands, see [CLAUDE.md](./CLAUDE.md) and [Q
 ## 📚 Documentation
 
 **Core Documentation**:
-- **[PLANNING.md](./PLANNING.md)** - Milestone tracking and project status (M0 ✅, M1 ✅)
+- **[PLANNING.md](./PLANNING.md)** - Milestone tracking and project status (M0-M4 ✅)
 - **[EVENTS.md](./EVENTS.md)** - Complete event catalog (25 events with schemas and flow diagrams)
 - **[ARCHITECTURE.md](./docs/ARCHITECTURE.md)** - System architecture with mermaid diagrams
 - **[STRUCTURE.md](./docs/STRUCTURE.md)** - Go project structure and development workflow
@@ -68,11 +68,23 @@ For detailed setup and development commands, see [CLAUDE.md](./CLAUDE.md) and [Q
 - **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Development philosophy and TDD workflow (Kent Beck style) - **READ FIRST**
 - **[Domain Guide](./.claude/skills/BATTERY-DOMAIN-SKILL.md)** - Battery domain concepts and validation rules
 
-**M2 Milestone Documentation**:
-- **[M2 Overview](./docs/milestones/M2-OVERVIEW.md)** - Big picture and learning objectives
-- **[M2 Domain Spec](./docs/milestones/M2-DOMAIN-SPEC.md)** - Battery aggregate and validation rules
-- **[M2 API Spec](./docs/milestones/M2-API-SPEC.md)** - REST endpoints and DTOs
-- **[M2 Checklist](./docs/milestones/M2-CHECKLIST.md)** - Step-by-step implementation guide
+**Milestone Documentation**:
+- **M2 (Asset Management Service)**:
+  - [M2 Overview](./docs/milestones/M2-OVERVIEW.md) - Big picture and learning objectives
+  - [M2 Domain Spec](./docs/milestones/M2-DOMAIN-SPEC.md) - Battery aggregate and validation rules
+  - [M2 API Spec](./docs/milestones/M2-API-SPEC.md) - REST endpoints and DTOs
+  - [M2 Checklist](./docs/milestones/M2-CHECKLIST.md) - Step-by-step implementation guide
+- **M3 (Market Data Service)**:
+  - [M3 Overview](./docs/milestones/M3-OVERVIEW.md) - Time-series data and DB-per-service pattern
+  - [M3 Domain Spec](./docs/milestones/M3-DOMAIN-SPEC.md) - MarketPrice aggregate
+  - [M3 API Spec](./docs/milestones/M3-API-SPEC.md) - Time-range queries
+  - [M3 Checklist](./docs/milestones/M3-CHECKLIST.md) - Implementation guide
+- **M4 (Event Bus Integration)**:
+  - [M4 Overview](./docs/milestones/M4-OVERVIEW.md) - Event-driven architecture
+  - [M4 Domain Spec](./docs/milestones/M4-DOMAIN-SPEC.md) - Event schemas and versioning
+  - [M4 API Spec](./docs/milestones/M4-API-SPEC.md) - NATS pub/sub patterns
+  - [M4 Checklist](./docs/milestones/M4-CHECKLIST.md) - Event integration guide
+  - [pkg/events README](./pkg/events/README.md) - Event library usage guide
 
 ## 🎓 Learning Focus
 
@@ -89,16 +101,37 @@ Inspired by battery optimization platforms in the Australian energy market, such
 ## 📝 Current Status
 
 **✅ Completed Milestones**:
-- **M0**: Project Setup - Infrastructure running (Docker Compose, PostgreSQL 18, NATS)
-- **M1**: Event Storming - 25 events documented with schemas and flow diagrams
-- **M2**: Asset Management Service - Production-ready REST API with TDD and Hexagonal Architecture
+
+- **M0: Project Setup** - Infrastructure running (Docker Compose, PostgreSQL 18, NATS)
+- **M1: Event Storming** - 25 events documented with schemas and flow diagrams
+
+- **M2: Asset Management Service** - Production-ready REST API with TDD and Hexagonal Architecture
   - 79.8% test coverage (domain: 96.7%)
   - 3 RESTful endpoints (POST, GET, LIST)
   - PostgreSQL persistence with automatic migrations
   - Docker deployment ready
-  - Comprehensive documentation
 
-**🚧 Next Up**: M3 (Market Data Service)
+- **M3: Market Data Service** - Time-series data service with DB-per-service pattern
+  - 84.6% test coverage (domain: 96.7%, repository: 91.1%)
+  - Time-range queries with filtering (region, interval_type)
+  - Pagination support (limit, offset)
+  - Separate PostgreSQL instance (market-db on port 5433)
+  - AEMO market data concepts (5MIN/30MIN intervals)
+
+- **M4: Event Bus Integration** - Event-driven architecture with NATS
+  - pkg/events library with 88.9% test coverage (27/27 tests passing)
+  - NATS publisher/subscriber adapters
+  - 2 services publishing events (battery.registered.v1, market.price.updated.v1)
+  - Test subscriber tool for real-time monitoring
+  - Event versioning strategy (subject + payload)
+  - Best-effort publishing pattern (graceful degradation)
+
+**🚧 Next Up**: M5 (Telemetry + Device Interface)
+
+**Services Running**:
+- Asset Management: REST API (8080) + Event Publishing
+- Market Data: REST API (8081) + Event Publishing
+- Infrastructure: NATS (4222), PostgreSQL x2 (5432, 5433)
 
 See [PLANNING.md](./PLANNING.md) for detailed milestone tracking and next steps.
 
