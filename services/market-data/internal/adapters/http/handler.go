@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"log"
@@ -10,18 +11,23 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"github.com/minwook/battery-optimization/pkg/events"
 	"github.com/minwook/battery-optimization/services/market-data/internal/domain"
 	"github.com/minwook/battery-optimization/services/market-data/internal/ports"
 )
 
 // MarketPriceHandler handles HTTP requests for market prices
 type MarketPriceHandler struct {
-	repo ports.MarketPriceRepository
+	repo      ports.MarketPriceRepository
+	publisher events.EventPublisher // Optional - service works without events
 }
 
 // NewMarketPriceHandler creates a new market price handler
-func NewMarketPriceHandler(repo ports.MarketPriceRepository) *MarketPriceHandler {
-	return &MarketPriceHandler{repo: repo}
+func NewMarketPriceHandler(repo ports.MarketPriceRepository, publisher events.EventPublisher) *MarketPriceHandler {
+	return &MarketPriceHandler{
+		repo:      repo,
+		publisher: publisher,
+	}
 }
 
 // CreateMarketPrice handles POST /prices
@@ -63,6 +69,33 @@ func (h *MarketPriceHandler) CreateMarketPrice(w http.ResponseWriter, r *http.Re
 		respondWithError(w, http.StatusInternalServerError, "INTERNAL_ERROR",
 			"Failed to save market price", nil)
 		return
+	}
+
+	// Publish MarketPriceUpdated event (best-effort, don't fail HTTP request)
+	if h.publisher != nil {
+		event := events.MarketPriceUpdated{
+			PriceID:       price.ID,
+			Region:        price.Region,
+			Price:         price.Price,
+			Demand:        price.Demand,
+			IntervalType:  string(price.IntervalType),
+			IntervalStart: price.IntervalStart,
+			PublishedAt:   price.PublishedAt,
+			Timestamp:     time.Now(),
+			EventVersion:  "v1",
+		}
+
+		// Use context with timeout for event publishing
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+
+		if err := h.publisher.Publish(ctx, "market.price.updated.v1", event); err != nil {
+			// Log warning but don't fail the HTTP request
+			log.Printf("WARNING: Failed to publish MarketPriceUpdated event for price %s: %v", price.ID, err)
+		} else {
+			log.Printf("Published MarketPriceUpdated event for price %s (Region: %s, Price: $%.2f)",
+				price.ID, price.Region, price.Price)
+		}
 	}
 
 	respondWithJSON(w, http.StatusCreated, FromDomain(price))

@@ -52,7 +52,7 @@ func TestCreateMarketPrice_Success(t *testing.T) {
 			return nil
 		},
 	}
-	handler := NewMarketPriceHandler(mockRepo)
+	handler := NewMarketPriceHandler(mockRepo, nil)
 
 	reqBody := CreateMarketPriceRequest{
 		Region:        "NSW",
@@ -85,7 +85,7 @@ func TestCreateMarketPrice_Success(t *testing.T) {
 func TestCreateMarketPrice_InvalidJSON(t *testing.T) {
 	// Given
 	mockRepo := &MockRepository{}
-	handler := NewMarketPriceHandler(mockRepo)
+	handler := NewMarketPriceHandler(mockRepo, nil)
 
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/prices", bytes.NewReader([]byte("invalid json")))
 	req.Header.Set("Content-Type", "application/json")
@@ -106,7 +106,7 @@ func TestCreateMarketPrice_InvalidJSON(t *testing.T) {
 func TestCreateMarketPrice_ValidationFailure(t *testing.T) {
 	// Given
 	mockRepo := &MockRepository{}
-	handler := NewMarketPriceHandler(mockRepo)
+	handler := NewMarketPriceHandler(mockRepo, nil)
 
 	reqBody := CreateMarketPriceRequest{
 		Region:        "NSW",
@@ -142,7 +142,7 @@ func TestCreateMarketPrice_DuplicateInterval(t *testing.T) {
 			return domain.ErrDuplicateInterval
 		},
 	}
-	handler := NewMarketPriceHandler(mockRepo)
+	handler := NewMarketPriceHandler(mockRepo, nil)
 
 	reqBody := CreateMarketPriceRequest{
 		Region:        "NSW",
@@ -186,7 +186,7 @@ func TestGetMarketPrice_Success(t *testing.T) {
 			return nil, domain.ErrNotFound
 		},
 	}
-	handler := NewMarketPriceHandler(mockRepo)
+	handler := NewMarketPriceHandler(mockRepo, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/prices/"+testPrice.ID, nil)
 	req = mux.SetURLVars(req, map[string]string{"id": testPrice.ID})
@@ -212,7 +212,7 @@ func TestGetMarketPrice_NotFound(t *testing.T) {
 			return nil, domain.ErrNotFound
 		},
 	}
-	handler := NewMarketPriceHandler(mockRepo)
+	handler := NewMarketPriceHandler(mockRepo, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/prices/non-existent", nil)
 	req = mux.SetURLVars(req, map[string]string{"id": "non-existent"})
@@ -245,7 +245,7 @@ func TestListMarketPrices_WithTimeRange(t *testing.T) {
 			return []*domain.MarketPrice{price1}, nil
 		},
 	}
-	handler := NewMarketPriceHandler(mockRepo)
+	handler := NewMarketPriceHandler(mockRepo, nil)
 
 	req := httptest.NewRequest(http.MethodGet,
 		"/api/v1/prices?from=2025-12-30T00:00:00Z&to=2025-12-31T00:00:00Z", nil)
@@ -282,7 +282,7 @@ func TestListMarketPrices_WithFilters(t *testing.T) {
 			return []*domain.MarketPrice{price1}, nil
 		},
 	}
-	handler := NewMarketPriceHandler(mockRepo)
+	handler := NewMarketPriceHandler(mockRepo, nil)
 
 	req := httptest.NewRequest(http.MethodGet,
 		"/api/v1/prices?from=2025-12-30T00:00:00Z&to=2025-12-31T00:00:00Z&region=NSW&interval_type=5MIN_PREDISPATCH&limit=10&offset=5", nil)
@@ -298,7 +298,7 @@ func TestListMarketPrices_WithFilters(t *testing.T) {
 func TestListMarketPrices_MissingFromParameter(t *testing.T) {
 	// Given
 	mockRepo := &MockRepository{}
-	handler := NewMarketPriceHandler(mockRepo)
+	handler := NewMarketPriceHandler(mockRepo, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/prices?to=2025-12-31T00:00:00Z", nil)
 	rec := httptest.NewRecorder()
@@ -318,7 +318,7 @@ func TestListMarketPrices_MissingFromParameter(t *testing.T) {
 func TestListMarketPrices_InvalidDateFormat(t *testing.T) {
 	// Given
 	mockRepo := &MockRepository{}
-	handler := NewMarketPriceHandler(mockRepo)
+	handler := NewMarketPriceHandler(mockRepo, nil)
 
 	req := httptest.NewRequest(http.MethodGet,
 		"/api/v1/prices?from=invalid-date&to=2025-12-31T00:00:00Z", nil)
@@ -343,7 +343,7 @@ func TestListMarketPrices_RepositoryError(t *testing.T) {
 			return nil, assert.AnError
 		},
 	}
-	handler := NewMarketPriceHandler(mockRepo)
+	handler := NewMarketPriceHandler(mockRepo, nil)
 
 	req := httptest.NewRequest(http.MethodGet,
 		"/api/v1/prices?from=2025-12-30T00:00:00Z&to=2025-12-31T00:00:00Z", nil)

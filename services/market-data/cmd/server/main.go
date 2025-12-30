@@ -16,6 +16,7 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/lib/pq"
 
+	"github.com/minwook/battery-optimization/pkg/events"
 	httpAdapter "github.com/minwook/battery-optimization/services/market-data/internal/adapters/http"
 	postgresAdapter "github.com/minwook/battery-optimization/services/market-data/internal/adapters/postgres"
 )
@@ -23,6 +24,7 @@ import (
 // Config holds application configuration
 type Config struct {
 	DatabaseURL string
+	NatsURL     string
 	Port        string
 	LogLevel    string
 }
@@ -63,15 +65,31 @@ func main() {
 	repo := postgresAdapter.NewPostgresRepository(db)
 	log.Println("Repository initialized")
 
-	// 6. Create handler
-	handler := httpAdapter.NewMarketPriceHandler(repo)
+	// 6. Connect to NATS (optional - service works without events)
+	var publisher events.EventPublisher
+	if cfg.NatsURL != "" {
+		natsPublisher, err := events.NewNATSPublisher(cfg.NatsURL)
+		if err != nil {
+			log.Printf("WARNING: Failed to connect to NATS at %s: %v", cfg.NatsURL, err)
+			log.Println("Service will continue WITHOUT event publishing")
+		} else {
+			publisher = natsPublisher
+			defer publisher.Close()
+			log.Printf("NATS publisher connected to %s", cfg.NatsURL)
+		}
+	} else {
+		log.Println("NATS_URL not set - running without event publishing")
+	}
+
+	// 7. Create handler
+	handler := httpAdapter.NewMarketPriceHandler(repo, publisher)
 	log.Println("HTTP handler initialized")
 
-	// 7. Setup HTTP router
+	// 8. Setup HTTP router
 	router := httpAdapter.SetupRoutes(handler)
 	log.Println("Routes configured")
 
-	// 8. Start HTTP server
+	// 9. Start HTTP server
 	srv := &http.Server{
 		Addr:         ":" + cfg.Port,
 		Handler:      router,
@@ -80,7 +98,7 @@ func main() {
 		IdleTimeout:  60 * time.Second,
 	}
 
-	// 9. Graceful shutdown on SIGINT/SIGTERM
+	// 10. Graceful shutdown on SIGINT/SIGTERM
 	go func() {
 		log.Printf("Starting HTTP server on port %s", cfg.Port)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -110,7 +128,8 @@ func main() {
 func loadConfig() Config {
 	cfg := Config{
 		DatabaseURL: getEnv("DATABASE_URL", "postgres://market_user:market_pass@localhost:5433/market_data?sslmode=disable"),
-		Port:        getEnv("PORT", "8080"),
+		NatsURL:     getEnv("NATS_URL", "nats://localhost:4222"),
+		Port:        getEnv("PORT", "8081"),
 		LogLevel:    getEnv("LOG_LEVEL", "info"),
 	}
 	return cfg
