@@ -411,7 +411,6 @@ Once M2 is complete:
 - You have a working Asset Management Service
 - You understand DDD, TDD, and hexagonal architecture
 - You're ready to build Market Data Service (similar pattern)
-- You can explain your architecture to Seb
 
 **Great job! 🎉**
 

@@ -142,13 +142,15 @@ func TestNATSSubscriber_WildcardSubscription(t *testing.T) {
 
 	// Publish battery.state.changed.v1 event
 	stateEvent := events.BatteryStateChanged{
-		BatteryID:    "BATT-001",
-		SoC:          0.75,
-		Power:        25.0,
-		Status:       "CHARGING",
-		Temperature:  25.5,
-		Timestamp:    time.Now(),
-		EventVersion: "v1",
+		BatteryID:      "BATT-001",
+		SoC:            0.75,
+		Power:          25.0,
+		OperationState: "CHARGING",
+		Temperature:    25.5,
+		Voltage:        800.0,
+		Current:        31.25,
+		Timestamp:      time.Now(),
+		EventVersion:   "v1",
 	}
 
 	pubCtx2, cancel2 := context.WithTimeout(context.Background(), 5*time.Second)

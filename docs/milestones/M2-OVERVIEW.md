@@ -216,7 +216,7 @@ Domain → Repository → HTTP Handler
 4. All tests are green
 5. You understand every line of code
 
-**Most importantly**: You should be able to explain to Seb:
+**Most importantly**: You should be able to explain:
 - Why you structured it this way
 - What patterns you used
 - How you'd extend it for new features

@@ -29,7 +29,18 @@
       "Bash(go mod edit:*)",
       "Bash(grep:*)",
       "Bash(go build:*)",
-      "Bash(\"  # All battery events\n- go run main.go \"battery.registered.v1\"  # Specific event\n\nOutput features:\n- Green: Timestamps and event counter\n- Blue: Subject names\n- Purple: JSON payloads\n- Yellow: Subscription pattern\n- Cyan: Tool header\n\nDocumentation:\n- Comprehensive README.md with examples\n- Integration instructions\n- Troubleshooting guide\n- Common subscription patterns table\n\nTool location: tools/event-subscriber/\n\nNext: Phase 7 - Integration Testing\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
+      "Bash(\"  # All battery events\n- go run main.go \"battery.registered.v1\"  # Specific event\n\nOutput features:\n- Green: Timestamps and event counter\n- Blue: Subject names\n- Purple: JSON payloads\n- Yellow: Subscription pattern\n- Cyan: Tool header\n\nDocumentation:\n- Comprehensive README.md with examples\n- Integration instructions\n- Troubleshooting guide\n- Common subscription patterns table\n\nTool location: tools/event-subscriber/\n\nNext: Phase 7 - Integration Testing\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(ls:*)",
+      "Bash(PORT=8082 ./bin/telemetry:*)",
+      "Bash(BATTERY_ID=battery-123 ADAPTER_TYPE=TeslaLike CAPACITY=200 MAX_POWER=100 ./bin/device-interface:*)",
+      "Bash(go run:*)",
+      "Bash(jq:*)",
+      "Bash(docker logs:*)",
+      "Bash(pkill:*)",
+      "Bash(chmod:*)",
+      "Bash(/Users/minwook/work/energy/battery-optimization/services/telemetry/test_state_publisher.sh)",
+      "Bash(timeout:*)",
+      "Bash(./test_state_publisher.sh:*)"
     ]
   }
 }

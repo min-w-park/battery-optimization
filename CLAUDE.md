@@ -359,13 +359,16 @@ Mock adapters simulate different vendor behaviors (TeslaLike, BYDLike) with Cust
 - **M2: Asset Management Service** - Battery domain model, REST API, 79.8% test coverage
 - **M3: Market Data Service** - Time-series data, DB-per-service pattern, 84.6% test coverage
 - **M4: Event Bus Integration** - NATS pub/sub, event library (88.9% coverage), 2 services publishing events
+- **M5: Telemetry + Device Interface** - Hardware abstraction, real-time monitoring
+  - Telemetry Service: 86.1% coverage, time-series storage, REST API
+  - Device Interface Service: 77.5% coverage, BatteryAdapter interface, TeslaLike mock adapter
+  - 7 new events, end-to-end event flow validated
 
-**🚧 Current**: M5 - Telemetry + Device Interface
+**🚧 Current**: M6 - Bidding Service
 
 See [PLANNING.md](PLANNING.md) for detailed milestone tracking and task breakdowns.
 
 **Upcoming Milestones**:
-- M5: Telemetry + Device Interface (Hardware abstraction, BatteryStateChanged events)
 - M6: Bidding Service (Arbitrage algorithm, event subscriptions)
 - M7: Documentation polish
 

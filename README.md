@@ -126,12 +126,29 @@ Inspired by battery optimization platforms in the Australian energy market, such
   - Event versioning strategy (subject + payload)
   - Best-effort publishing pattern (graceful degradation)
 
-**🚧 Next Up**: M5 (Telemetry + Device Interface)
+- **M5: Telemetry + Device Interface** - Hardware abstraction and real-time monitoring
+  - **Telemetry Service**: 86.1% test coverage (domain: 100%, postgres: 81.5%, http: 76.7%)
+    - PostgreSQL time-series storage with optimized indexes
+    - REST API: GET current state, GET history with time-range queries
+    - BatteryState domain model with comprehensive validation
+    - JSONB support for CustomAttributes
+  - **Device Interface Service**: 77.5% test coverage (adapters: 78.5%, service: 76.4%)
+    - BatteryAdapter interface for vendor-agnostic hardware control
+    - TeslaLike mock adapter (5 MW/s ramp rate, 95% efficiency, temperature physics)
+    - Real-time simulation with 100ms tick rate
+    - Event-driven command handling (charging/discharging via NATS)
+    - Lifecycle event publishing (ChargingStarted, DischargingStarted)
+  - 7 new events added to pkg/events library
+  - End-to-end event flow validated
+
+**🚧 Next Up**: M6 (Bidding Service)
 
 **Services Running**:
 - Asset Management: REST API (8080) + Event Publishing
 - Market Data: REST API (8081) + Event Publishing
-- Infrastructure: NATS (4222), PostgreSQL x2 (5432, 5433)
+- Telemetry: REST API (8082) + Time-series storage
+- Device Interface: Event-driven command handler
+- Infrastructure: NATS (4222), PostgreSQL x3 (5432, 5433, 5434)
 
 See [PLANNING.md](./PLANNING.md) for detailed milestone tracking and next steps.
 
