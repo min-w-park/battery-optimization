@@ -22,7 +22,14 @@
       "Bash(tree:*)",
       "Bash(docker-compose restart:*)",
       "Bash(python3:*)",
-      "Bash(go clean:*)"
+      "Bash(go clean:*)",
+      "Bash(nats pub:*)",
+      "Bash(\" matches multiple\n- \"battery.*.v1\" matches \"battery.registered.v1\" only\n- \"battery.)",
+      "Bash(\" matches both \"battery.registered.v1\" and \"battery.state.changed.v1\"\n\nNext: Phase 4 - Asset Service Integration\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(go mod edit:*)",
+      "Bash(grep:*)",
+      "Bash(go build:*)",
+      "Bash(\"  # All battery events\n- go run main.go \"battery.registered.v1\"  # Specific event\n\nOutput features:\n- Green: Timestamps and event counter\n- Blue: Subject names\n- Purple: JSON payloads\n- Yellow: Subscription pattern\n- Cyan: Tool header\n\nDocumentation:\n- Comprehensive README.md with examples\n- Integration instructions\n- Troubleshooting guide\n- Common subscription patterns table\n\nTool location: tools/event-subscriber/\n\nNext: Phase 7 - Integration Testing\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
     ]
   }
 }
