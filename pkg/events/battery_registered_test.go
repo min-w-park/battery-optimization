@@ -21,10 +21,13 @@ func TestBatteryRegistered_JSONSerialization(t *testing.T) {
 		Location:     "Sydney, NSW",
 		Manufacturer: "Tesla Megapack",
 		Constraints: events.BatteryConstraints{
-			MinSoC:      0.2,
-			MaxSoC:      0.9,
-			WarrantyEOL: 0.7,
-			MaxCycles:   10000,
+			MinSoC:              0.2,
+			MaxSoC:              0.9,
+			WarrantyEOL:         0.7,
+			MaxCycles:           10000,
+			OperatingTempMin:    -10.0,
+			OperatingTempMax:    45.0,
+			GridComplianceLevel: "AS4777",
 		},
 		Timestamp:    time.Date(2025, 12, 30, 10, 30, 0, 0, time.UTC),
 		EventVersion: "v1",
@@ -52,6 +55,9 @@ func TestBatteryRegistered_JSONSerialization(t *testing.T) {
 	assert.Equal(t, 0.9, decoded.Constraints.MaxSoC)
 	assert.Equal(t, 0.7, decoded.Constraints.WarrantyEOL)
 	assert.Equal(t, 10000, decoded.Constraints.MaxCycles)
+	assert.Equal(t, -10.0, decoded.Constraints.OperatingTempMin)
+	assert.Equal(t, 45.0, decoded.Constraints.OperatingTempMax)
+	assert.Equal(t, "AS4777", decoded.Constraints.GridComplianceLevel)
 	assert.Equal(t, event.Timestamp.Unix(), decoded.Timestamp.Unix())
 	assert.Equal(t, "v1", decoded.EventVersion)
 }
@@ -66,10 +72,13 @@ func TestBatteryRegistered_JSONTags(t *testing.T) {
 		Location:     "Melbourne, VIC",
 		Manufacturer: "BYD",
 		Constraints: events.BatteryConstraints{
-			MinSoC:      0.1,
-			MaxSoC:      0.95,
-			WarrantyEOL: 0.8,
-			MaxCycles:   15000,
+			MinSoC:              0.1,
+			MaxSoC:              0.95,
+			WarrantyEOL:         0.8,
+			MaxCycles:           15000,
+			OperatingTempMin:    -5.0,
+			OperatingTempMax:    40.0,
+			GridComplianceLevel: "AS4777.2",
 		},
 		Timestamp:    time.Now(),
 		EventVersion: "v1",

@@ -1,26 +1,33 @@
 package http
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 
+	"github.com/minwook/battery-optimization/pkg/events"
 	"github.com/minwook/battery-optimization/services/asset-management/internal/domain"
 	"github.com/minwook/battery-optimization/services/asset-management/internal/ports"
 )
 
 // BatteryHandler handles HTTP requests for battery operations
 type BatteryHandler struct {
-	repo ports.BatteryRepository
+	repo      ports.BatteryRepository
+	publisher events.EventPublisher // Optional - service works without events
 }
 
 // NewBatteryHandler creates a new battery handler
-func NewBatteryHandler(repo ports.BatteryRepository) *BatteryHandler {
-	return &BatteryHandler{repo: repo}
+func NewBatteryHandler(repo ports.BatteryRepository, publisher events.EventPublisher) *BatteryHandler {
+	return &BatteryHandler{
+		repo:      repo,
+		publisher: publisher,
+	}
 }
 
 // CreateBattery handles POST /api/v1/batteries
@@ -59,6 +66,43 @@ func (h *BatteryHandler) CreateBattery(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Failed to create battery: %v", err)
 		respondWithError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Failed to save battery", nil)
 		return
+	}
+
+	// Publish BatteryRegistered event (best-effort, don't fail HTTP request)
+	if h.publisher != nil {
+		event := events.BatteryRegistered{
+			BatteryID:    battery.ID,
+			Capacity:     battery.Capacity,
+			MaxPower:     battery.MaxPower,
+			RampRate:     battery.RampRate,
+			Efficiency:   battery.Efficiency,
+			Location:     battery.Location,
+			Manufacturer: battery.Manufacturer,
+			Constraints: events.BatteryConstraints{
+				// Default SoC constraints (10%-90% operational range)
+				MinSoC:              0.1,
+				MaxSoC:              0.9,
+				// Physical/warranty constraints from domain
+				WarrantyEOL:         battery.Constraints.WarrantyEOL,
+				MaxCycles:           battery.Constraints.MaxCycles,
+				OperatingTempMin:    battery.Constraints.OperatingTempMin,
+				OperatingTempMax:    battery.Constraints.OperatingTempMax,
+				GridComplianceLevel: battery.Constraints.GridComplianceLevel,
+			},
+			Timestamp:    time.Now(),
+			EventVersion: "v1",
+		}
+
+		// Use context with timeout for event publishing
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+
+		if err := h.publisher.Publish(ctx, "battery.registered.v1", event); err != nil {
+			// Log warning but don't fail the HTTP request
+			log.Printf("WARNING: Failed to publish BatteryRegistered event for battery %s: %v", battery.ID, err)
+		} else {
+			log.Printf("Published BatteryRegistered event for battery %s", battery.ID)
+		}
 	}
 
 	// Return success response

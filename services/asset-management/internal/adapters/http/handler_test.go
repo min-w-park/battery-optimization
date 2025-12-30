@@ -66,7 +66,7 @@ func TestCreateBattery_Success(t *testing.T) {
 			return nil
 		},
 	}
-	handler := NewBatteryHandler(mockRepo)
+	handler := NewBatteryHandler(mockRepo, nil)
 
 	requestBody := CreateBatteryRequest{
 		Capacity:     200.0,
@@ -107,7 +107,7 @@ func TestCreateBattery_Success(t *testing.T) {
 func TestCreateBattery_InvalidJSON(t *testing.T) {
 	// Given: A handler
 	mockRepo := &MockRepository{}
-	handler := NewBatteryHandler(mockRepo)
+	handler := NewBatteryHandler(mockRepo, nil)
 
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/batteries", bytes.NewReader([]byte("invalid json")))
 	req.Header.Set("Content-Type", "application/json")
@@ -128,7 +128,7 @@ func TestCreateBattery_InvalidJSON(t *testing.T) {
 func TestCreateBattery_ValidationFailure(t *testing.T) {
 	// Given: A handler
 	mockRepo := &MockRepository{}
-	handler := NewBatteryHandler(mockRepo)
+	handler := NewBatteryHandler(mockRepo, nil)
 
 	requestBody := CreateBatteryRequest{
 		Capacity:     0, // Invalid: must be > 0
@@ -170,7 +170,7 @@ func TestCreateBattery_RepositoryError(t *testing.T) {
 			return errors.New("database error")
 		},
 	}
-	handler := NewBatteryHandler(mockRepo)
+	handler := NewBatteryHandler(mockRepo, nil)
 
 	requestBody := CreateBatteryRequest{
 		Capacity:     200.0,
@@ -210,7 +210,7 @@ func TestGetBattery_Success(t *testing.T) {
 			return nil, domain.ErrNotFound
 		},
 	}
-	handler := NewBatteryHandler(mockRepo)
+	handler := NewBatteryHandler(mockRepo, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/batteries/"+testBattery.ID, nil)
 	req = mux.SetURLVars(req, map[string]string{"id": testBattery.ID})
@@ -236,7 +236,7 @@ func TestGetBattery_NotFound(t *testing.T) {
 			return nil, domain.ErrNotFound
 		},
 	}
-	handler := NewBatteryHandler(mockRepo)
+	handler := NewBatteryHandler(mockRepo, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/batteries/non-existent", nil)
 	req = mux.SetURLVars(req, map[string]string{"id": "non-existent"})
@@ -264,7 +264,7 @@ func TestListBatteries_NoFilters(t *testing.T) {
 			return []*domain.Battery{battery1, battery2}, nil
 		},
 	}
-	handler := NewBatteryHandler(mockRepo)
+	handler := NewBatteryHandler(mockRepo, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/batteries", nil)
 	rec := httptest.NewRecorder()
@@ -295,7 +295,7 @@ func TestListBatteries_WithFilters(t *testing.T) {
 			return []*domain.Battery{battery}, nil
 		},
 	}
-	handler := NewBatteryHandler(mockRepo)
+	handler := NewBatteryHandler(mockRepo, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/batteries?location=SA&limit=10&offset=5", nil)
 	rec := httptest.NewRecorder()
@@ -314,7 +314,7 @@ func TestListBatteries_RepositoryError(t *testing.T) {
 			return nil, errors.New("database error")
 		},
 	}
-	handler := NewBatteryHandler(mockRepo)
+	handler := NewBatteryHandler(mockRepo, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/batteries", nil)
 	rec := httptest.NewRecorder()

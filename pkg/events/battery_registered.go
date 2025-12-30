@@ -29,9 +29,16 @@ type BatteryRegistered struct {
 }
 
 // BatteryConstraints represents operational limits for a battery.
+// Combines SoC constraints (for bidding logic) with physical constraints (from domain).
 type BatteryConstraints struct {
-	MinSoC      float64 `json:"min_soc"`       // Minimum State of Charge (0-1)
-	MaxSoC      float64 `json:"max_soc"`       // Maximum State of Charge (0-1)
-	WarrantyEOL float64 `json:"warranty_eol"`  // Warranty End of Life threshold (0-1)
-	MaxCycles   int     `json:"max_cycles"`    // Maximum charge/discharge cycles
+	// State of Charge constraints (for bidding/optimization)
+	MinSoC float64 `json:"min_soc"` // Minimum State of Charge (0-1)
+	MaxSoC float64 `json:"max_soc"` // Maximum State of Charge (0-1)
+
+	// Physical/warranty constraints (from Asset Management domain)
+	WarrantyEOL         float64 `json:"warranty_eol"`          // Warranty End of Life threshold (0-1)
+	MaxCycles           int     `json:"max_cycles"`            // Maximum charge/discharge cycles
+	OperatingTempMin    float64 `json:"operating_temp_min"`    // Minimum operating temperature (°C)
+	OperatingTempMax    float64 `json:"operating_temp_max"`    // Maximum operating temperature (°C)
+	GridComplianceLevel string  `json:"grid_compliance_level"` // Grid compliance standard (e.g., AS4777)
 }
