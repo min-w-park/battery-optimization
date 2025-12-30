@@ -27,11 +27,12 @@ type NATSSubscriber struct {
 //   - error: Connection error if NATS is unreachable
 //
 // Example:
-//   subscriber, err := events.NewNATSSubscriber("nats://localhost:4222")
-//   if err != nil {
-//       log.Fatalf("Failed to connect to NATS: %v", err)
-//   }
-//   defer subscriber.Close()
+//
+//	subscriber, err := events.NewNATSSubscriber("nats://localhost:4222")
+//	if err != nil {
+//	    log.Fatalf("Failed to connect to NATS: %v", err)
+//	}
+//	defer subscriber.Close()
 func NewNATSSubscriber(url string) (*NATSSubscriber, error) {
 	// Connect to NATS with timeout
 	conn, err := nats.Connect(
@@ -67,16 +68,17 @@ func NewNATSSubscriber(url string) (*NATSSubscriber, error) {
 //   - error: Subscription error if NATS connection is closed or invalid subject
 //
 // Example:
-//   handler := func(subject string, data []byte) error {
-//       var event events.BatteryRegistered
-//       if err := json.Unmarshal(data, &event); err != nil {
-//           log.Printf("ERROR: Invalid JSON: %v", err)
-//           return nil // ACK anyway - malformed JSON won't fix itself
-//       }
-//       log.Printf("Received: %s - Battery %s", subject, event.BatteryID)
-//       return nil
-//   }
-//   err := subscriber.Subscribe(ctx, "battery.*.v1", handler)
+//
+//	handler := func(subject string, data []byte) error {
+//	    var event events.BatteryRegistered
+//	    if err := json.Unmarshal(data, &event); err != nil {
+//	        log.Printf("ERROR: Invalid JSON: %v", err)
+//	        return nil // ACK anyway - malformed JSON won't fix itself
+//	    }
+//	    log.Printf("Received: %s - Battery %s", subject, event.BatteryID)
+//	    return nil
+//	}
+//	err := subscriber.Subscribe(ctx, "battery.*.v1", handler)
 func (s *NATSSubscriber) Subscribe(ctx context.Context, subject string, handler EventHandler) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -127,7 +129,8 @@ func (s *NATSSubscriber) Subscribe(ctx context.Context, subject string, handler 
 //   - error: Always returns nil (safe to ignore)
 //
 // Example:
-//   defer subscriber.Close()
+//
+//	defer subscriber.Close()
 func (s *NATSSubscriber) Close() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()

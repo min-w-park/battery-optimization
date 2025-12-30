@@ -185,11 +185,23 @@ See [EVENTS.md](EVENTS.md) for complete event schemas, flow diagrams, and servic
 - **[Battery Domain Skill](.claude/skills/BATTERY-DOMAIN-SKILL.md)**: Domain concepts, validation rules, examples
 - **[TDD Skill](.claude/skills/TDD-SKILL.md)**: TDD workflow, patterns, and anti-patterns
 
-**M2 Milestone Documentation**:
-- **[M2 Overview](docs/milestones/M2-OVERVIEW.md)**: Big picture and learning objectives
-- **[M2 Domain Spec](docs/milestones/M2-DOMAIN-SPEC.md)**: Battery aggregate and validation rules
-- **[M2 API Spec](docs/milestones/M2-API-SPEC.md)**: REST endpoints and DTOs
-- **[M2 Checklist](docs/milestones/M2-CHECKLIST.md)**: Step-by-step implementation guide
+**Milestone Documentation**:
+- **M2 (Asset Management Service)**:
+  - [M2 Overview](docs/milestones/M2-OVERVIEW.md): Big picture and learning objectives
+  - [M2 Domain Spec](docs/milestones/M2-DOMAIN-SPEC.md): Battery aggregate and validation rules
+  - [M2 API Spec](docs/milestones/M2-API-SPEC.md): REST endpoints and DTOs
+  - [M2 Checklist](docs/milestones/M2-CHECKLIST.md): Step-by-step implementation guide
+- **M3 (Market Data Service)**:
+  - [M3 Overview](docs/milestones/M3-OVERVIEW.md): Time-series data and DB-per-service pattern
+  - [M3 Domain Spec](docs/milestones/M3-DOMAIN-SPEC.md): MarketPrice aggregate and validation
+  - [M3 API Spec](docs/milestones/M3-API-SPEC.md): Time-range queries and filtering
+  - [M3 Checklist](docs/milestones/M3-CHECKLIST.md): Implementation guide
+- **M4 (Event Bus Integration)**:
+  - [M4 Overview](docs/milestones/M4-OVERVIEW.md): Event-driven architecture with NATS
+  - [M4 Domain Spec](docs/milestones/M4-DOMAIN-SPEC.md): Event schemas and versioning
+  - [M4 API Spec](docs/milestones/M4-API-SPEC.md): NATS pub/sub patterns
+  - [M4 Checklist](docs/milestones/M4-CHECKLIST.md): Event integration guide
+  - [pkg/events README](pkg/events/README.md): Event library usage guide
 
 ## Service Development Pattern
 
@@ -206,7 +218,125 @@ When implementing a new service:
 
 Refer to [STRUCTURE.md](docs/STRUCTURE.md) for detailed directory layout and service-specific patterns.
 
-For M2 (Asset Management Service), follow the detailed guide in [M2 Checklist](docs/milestones/M2-CHECKLIST.md).
+## Event Publishing and Subscribing
+
+All services use the **pkg/events** library for event-driven communication via NATS. See [pkg/events/README.md](pkg/events/README.md) for complete usage guide.
+
+### Publishing Events
+
+Services publish domain events when aggregates change state:
+
+```go
+import "github.com/minwook/battery-optimization/pkg/events"
+
+// 1. In main.go - Connect to NATS
+var publisher events.EventPublisher
+if cfg.NatsURL != "" {
+    natsPublisher, err := events.NewNATSPublisher(cfg.NatsURL)
+    if err != nil {
+        log.Printf("WARNING: Failed to connect to NATS: %v", err)
+        log.Println("Service will continue WITHOUT event publishing")
+    } else {
+        publisher = natsPublisher
+        defer publisher.Close()
+    }
+}
+
+// 2. In handler - Publish event after DB save
+if h.publisher != nil {
+    event := events.BatteryRegistered{
+        BatteryID:    battery.ID,
+        Capacity:     battery.Capacity,
+        // ... map all fields ...
+        Timestamp:    time.Now(),
+        EventVersion: "v1",
+    }
+
+    ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+    defer cancel()
+
+    if err := h.publisher.Publish(ctx, "battery.registered.v1", event); err != nil {
+        // Best-effort: Log warning but don't fail the HTTP request
+        log.Printf("WARNING: Failed to publish event: %v", err)
+    }
+}
+```
+
+**Key Patterns**:
+- **Best-effort publishing**: Event failures don't block HTTP responses
+- **Optional publisher**: Services work gracefully when NATS unavailable
+- **Context timeouts**: Always use 2-second timeout for publishing
+- **Subject versioning**: Include version in subject (`battery.registered.v1`)
+- **Payload versioning**: Set `event_version` field to "v1"
+
+### Subscribing to Events
+
+Services subscribe to relevant events from other services:
+
+```go
+import "github.com/minwook/battery-optimization/pkg/events"
+
+// 1. Connect to NATS
+subscriber, err := events.NewNATSSubscriber("nats://localhost:4222")
+if err != nil {
+    log.Fatalf("Failed to connect to NATS: %v", err)
+}
+defer subscriber.Close()
+
+// 2. Define handler
+handler := func(subject string, data []byte) error {
+    if subject == "battery.registered.v1" {
+        var event events.BatteryRegistered
+        if err := json.Unmarshal(data, &event); err != nil {
+            return fmt.Errorf("failed to unmarshal: %w", err)
+        }
+        log.Printf("Battery registered: %s", event.BatteryID)
+    }
+    return nil
+}
+
+// 3. Subscribe with wildcard
+ctx := context.Background()
+if err := subscriber.Subscribe(ctx, "battery.>", handler); err != nil {
+    log.Fatalf("Failed to subscribe: %v", err)
+}
+```
+
+**Wildcard Patterns**:
+- `>` - All events
+- `battery.>` - All battery events
+- `market.>` - All market events
+- `*.*.v1` - All v1 events from any service
+
+### Implemented Events (M4)
+
+**Currently Publishing**:
+- `battery.registered.v1` - Published by Asset Management Service when battery created
+- `market.price.updated.v1` - Published by Market Data Service when price created
+- `battery.state.changed.v1` - Placeholder for M5 (Telemetry Service)
+
+**Event Versioning Strategy**:
+- Backward-compatible changes (add fields): Keep same version
+- Breaking changes (remove/rename fields): Create new version (v2)
+
+### Testing Events
+
+Use the event subscriber tool for manual testing:
+
+```bash
+# Terminal 1: Subscribe to all events
+cd tools/event-subscriber
+go run main.go
+
+# Terminal 2: Trigger event
+curl -X POST http://localhost:8080/api/v1/batteries \
+  -H "Content-Type: application/json" \
+  -d '{ ... }'
+
+# See event appear in Terminal 1
+```
+
+For automated testing, see [pkg/events/README.md](pkg/events/README.md).
 
 ## Hardware Abstraction
 
@@ -226,17 +356,17 @@ Mock adapters simulate different vendor behaviors (TeslaLike, BYDLike) with Cust
 **✅ Completed Milestones**:
 - **M0: Project Setup** - Infrastructure running (Docker Compose, PostgreSQL 18, NATS)
 - **M1: Event Storming** - 25 events documented with schemas and flow diagrams
+- **M2: Asset Management Service** - Battery domain model, REST API, 79.8% test coverage
+- **M3: Market Data Service** - Time-series data, DB-per-service pattern, 84.6% test coverage
+- **M4: Event Bus Integration** - NATS pub/sub, event library (88.9% coverage), 2 services publishing events
 
-**🚧 Current**: M2 - Asset Management Service
+**🚧 Current**: M5 - Telemetry + Device Interface
 
 See [PLANNING.md](PLANNING.md) for detailed milestone tracking and task breakdowns.
 
 **Upcoming Milestones**:
-- M2: Asset Management Service (Battery domain model, REST API, TDD)
-- M3: Market Data Service (DB-per-service pattern)
-- M4: Event Bus Integration (NATS pub/sub)
-- M5: Telemetry + Device Interface (Hardware abstraction)
-- M6: Bidding Service (Arbitrage algorithm)
+- M5: Telemetry + Device Interface (Hardware abstraction, BatteryStateChanged events)
+- M6: Bidding Service (Arbitrage algorithm, event subscriptions)
 - M7: Documentation polish
 
 ## Key Design Decisions

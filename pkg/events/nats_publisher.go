@@ -24,11 +24,12 @@ type NATSPublisher struct {
 //   - error: Connection error if NATS is unreachable
 //
 // Example:
-//   publisher, err := events.NewNATSPublisher("nats://localhost:4222")
-//   if err != nil {
-//       log.Fatalf("Failed to connect to NATS: %v", err)
-//   }
-//   defer publisher.Close()
+//
+//	publisher, err := events.NewNATSPublisher("nats://localhost:4222")
+//	if err != nil {
+//	    log.Fatalf("Failed to connect to NATS: %v", err)
+//	}
+//	defer publisher.Close()
 func NewNATSPublisher(url string) (*NATSPublisher, error) {
 	// Connect to NATS with timeout
 	conn, err := nats.Connect(
@@ -60,10 +61,11 @@ func NewNATSPublisher(url string) (*NATSPublisher, error) {
 //   - error: JSON marshaling error or NATS publish error
 //
 // Example:
-//   event := events.BatteryRegistered{...}
-//   ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-//   defer cancel()
-//   err := publisher.Publish(ctx, "battery.registered.v1", event)
+//
+//	event := events.BatteryRegistered{...}
+//	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+//	defer cancel()
+//	err := publisher.Publish(ctx, "battery.registered.v1", event)
 func (p *NATSPublisher) Publish(ctx context.Context, subject string, event interface{}) error {
 	// Check if connection is closed
 	if p.conn == nil || p.conn.IsClosed() {
@@ -109,7 +111,8 @@ func (p *NATSPublisher) Publish(ctx context.Context, subject string, event inter
 //   - error: Always returns nil (safe to ignore)
 //
 // Example:
-//   defer publisher.Close()
+//
+//	defer publisher.Close()
 func (p *NATSPublisher) Close() error {
 	if p.conn != nil && !p.conn.IsClosed() {
 		// Drain waits for pending messages to be sent

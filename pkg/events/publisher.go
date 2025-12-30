@@ -8,14 +8,15 @@ import "context"
 //   - NATSPublisher: Publishes events to NATS message broker
 //
 // Usage:
-//   publisher, err := events.NewNATSPublisher("nats://localhost:4222")
-//   if err != nil {
-//       log.Fatal(err)
-//   }
-//   defer publisher.Close()
 //
-//   event := events.BatteryRegistered{...}
-//   err = publisher.Publish(ctx, "battery.registered.v1", event)
+//	publisher, err := events.NewNATSPublisher("nats://localhost:4222")
+//	if err != nil {
+//	    log.Fatal(err)
+//	}
+//	defer publisher.Close()
+//
+//	event := events.BatteryRegistered{...}
+//	err = publisher.Publish(ctx, "battery.registered.v1", event)
 type EventPublisher interface {
 	// Publish sends an event to the specified NATS subject.
 	// The event will be JSON-serialized before publishing.

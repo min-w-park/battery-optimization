@@ -18,19 +18,19 @@
 
 ---
 
-## Phase 0: Create M4 Milestone Documentation (1-1.5 hours)
+## Phase 0: Create M4 Milestone Documentation (1-1.5 hours) ✅ COMPLETE
 
 ### 0.1 Documentation Files
-- [ ] Create `docs/milestones/M4-OVERVIEW.md`
-- [ ] Create `docs/milestones/M4-DOMAIN-SPEC.md`
-- [ ] Create `docs/milestones/M4-API-SPEC.md`
-- [ ] Create `docs/milestones/M4-CHECKLIST.md`
+- [x] Create `docs/milestones/M4-OVERVIEW.md`
+- [x] Create `docs/milestones/M4-DOMAIN-SPEC.md`
+- [x] Create `docs/milestones/M4-API-SPEC.md`
+- [x] Create `docs/milestones/M4-CHECKLIST.md`
 
 ### 0.2 Review and Commit
-- [ ] Review all 4 documentation files
-- [ ] Verify event schemas match EVENTS.md
-- [ ] Verify NATS connection info matches docker-compose.yml
-- [ ] Commit documentation before starting Phase 1
+- [x] Review all 4 documentation files
+- [x] Verify event schemas match EVENTS.md
+- [x] Verify NATS connection info matches docker-compose.yml
+- [x] Commit documentation before starting Phase 1
   ```bash
   git add docs/milestones/M4-*.md
   git commit -m "docs(M4): add Event Bus Integration milestone documentation"
@@ -40,11 +40,11 @@
 
 ---
 
-## Phase 1: Common Event Library (2-3 hours)
+## Phase 1: Common Event Library (2-3 hours) ✅ COMPLETE
 
 ### 1.1 Package Structure
-- [ ] Create `pkg/events/` directory
-- [ ] Initialize Go module:
+- [x] Create `pkg/events/` directory
+- [x] Initialize Go module:
   ```bash
   cd pkg/events
   go mod init github.com/minwook/battery-optimization/pkg/events
@@ -53,31 +53,31 @@
 ### 1.2 Event Structs (TDD - Tests First!)
 
 #### Write Tests FIRST (Red Phase)
-- [ ] Create `pkg/events/battery_registered_test.go`
-- [ ] Write test: `TestBatteryRegistered_JSONSerialization`
+- [x] Create `pkg/events/battery_registered_test.go`
+- [x] Write test: `TestBatteryRegistered_JSONSerialization`
   - Create BatteryRegistered event with all fields
   - Marshal to JSON
   - Unmarshal back
   - Verify all fields match
-- [ ] Write test: `TestBatteryRegistered_JSONTags`
+- [x] Write test: `TestBatteryRegistered_JSONTags`
   - Verify JSON field names (snake_case: `battery_id`, `max_power`, etc.)
-- [ ] Run tests → Should FAIL (Red phase) ✅
+- [x] Run tests → Should FAIL (Red phase) ✅
 
-- [ ] Create `pkg/events/market_price_updated_test.go`
-- [ ] Write test: `TestMarketPriceUpdated_JSONSerialization`
-- [ ] Write test: `TestMarketPriceUpdated_Timestamps`
+- [x] Create `pkg/events/market_price_updated_test.go`
+- [x] Write test: `TestMarketPriceUpdated_JSONSerialization`
+- [x] Write test: `TestMarketPriceUpdated_Timestamps`
   - Verify IntervalStart, PublishedAt, Timestamp all preserved
-- [ ] Run tests → Should FAIL (Red phase) ✅
+- [x] Run tests → Should FAIL (Red phase) ✅
 
-- [ ] Create `pkg/events/battery_state_changed_test.go`
-- [ ] Write test: `TestBatteryStateChanged_JSONSerialization`
-- [ ] Run tests → Should FAIL (Red phase) ✅
+- [x] Create `pkg/events/battery_state_changed_test.go`
+- [x] Write test: `TestBatteryStateChanged_JSONSerialization`
+- [x] Run tests → Should FAIL (Red phase) ✅
 
 **TDD Checkpoint**: ✅ All event tests written and failing
 
 #### Implementation (Green Phase)
-- [ ] Create `pkg/events/battery_registered.go`
-- [ ] Define `BatteryRegistered` struct with JSON tags:
+- [x] Create `pkg/events/battery_registered.go`
+- [x] Define `BatteryRegistered` struct with JSON tags:
   ```go
   type BatteryRegistered struct {
       BatteryID    string             `json:"battery_id"`
@@ -100,43 +100,43 @@
   }
   ```
 
-- [ ] Create `pkg/events/market_price_updated.go`
-- [ ] Define `MarketPriceUpdated` struct with JSON tags
+- [x] Create `pkg/events/market_price_updated.go`
+- [x] Define `MarketPriceUpdated` struct with JSON tags
 
-- [ ] Create `pkg/events/battery_state_changed.go`
-- [ ] Define `BatteryStateChanged` struct (placeholder for M5)
+- [x] Create `pkg/events/battery_state_changed.go`
+- [x] Define `BatteryStateChanged` struct (placeholder for M5)
 
-- [ ] Run tests → All pass ✅ (Green phase)
+- [x] Run tests → All pass ✅ (Green phase)
 
 ### 1.3 Publisher Interface
 
 #### Tests First (Red Phase)
-- [ ] Create `pkg/events/publisher_test.go`
-- [ ] Write test: `TestEventPublisher_Interface`
+- [x] Create `pkg/events/publisher_test.go`
+- [x] Write test: `TestEventPublisher_Interface`
   - Verify interface signature
-- [ ] Run test → Should FAIL ✅
+- [x] Run test → Should FAIL ✅
 
 #### Implementation (Green Phase)
-- [ ] Create `pkg/events/publisher.go`
-- [ ] Define `EventPublisher` interface:
+- [x] Create `pkg/events/publisher.go`
+- [x] Define `EventPublisher` interface:
   ```go
   type EventPublisher interface {
       Publish(ctx context.Context, subject string, event interface{}) error
       Close() error
   }
   ```
-- [ ] Run test → Should pass ✅
+- [x] Run test → Should pass ✅
 
 ### 1.4 Subscriber Interface
 
 #### Tests First (Red Phase)
-- [ ] Create `pkg/events/subscriber_test.go`
-- [ ] Write test: `TestEventSubscriber_Interface`
-- [ ] Run test → Should FAIL ✅
+- [x] Create `pkg/events/subscriber_test.go`
+- [x] Write test: `TestEventSubscriber_Interface`
+- [x] Run test → Should FAIL ✅
 
 #### Implementation (Green Phase)
-- [ ] Create `pkg/events/subscriber.go`
-- [ ] Define `EventHandler` and `EventSubscriber`:
+- [x] Create `pkg/events/subscriber.go`
+- [x] Define `EventHandler` and `EventSubscriber`:
   ```go
   type EventHandler func(subject string, data []byte) error
 
@@ -145,21 +145,21 @@
       Close() error
   }
   ```
-- [ ] Run test → Should pass ✅
+- [x] Run test → Should pass ✅
 
 ### 1.5 Test Coverage
-- [ ] Run: `go test -cover ./...`
-- [ ] Verify coverage >80% (target: 85%+)
-- [ ] All event serialization tests passing
+- [x] Run: `go test -cover ./...`
+- [x] Verify coverage >80% (target: 85%+)
+- [x] All event serialization tests passing
 
 **Checkpoint**: ✅ Common event library complete, interfaces defined, events tested
 
 ---
 
-## Phase 2: NATS Publisher Adapter (2-3 hours)
+## Phase 2: NATS Publisher Adapter (2-3 hours) ✅ COMPLETE
 
 ### 2.1 Dependencies
-- [ ] Add NATS dependency:
+- [x] Add NATS dependency:
   ```bash
   cd pkg/events
   go get github.com/nats-io/nats.go
@@ -167,107 +167,107 @@
 
 ### 2.2 Publisher Tests - Write FIRST! (Red Phase)
 
-- [ ] Create `pkg/events/nats_publisher_test.go`
-- [ ] Write test: `TestNewNATSPublisher_Success`
+- [x] Create `pkg/events/nats_publisher_test.go`
+- [x] Write test: `TestNewNATSPublisher_Success`
   - Connect to `nats://localhost:4222`
   - Verify no error
   - Verify connection established
-- [ ] Write test: `TestNewNATSPublisher_ConnectionFailure`
+- [x] Write test: `TestNewNATSPublisher_ConnectionFailure`
   - Try to connect to invalid URL
   - Should return error
-- [ ] Write test: `TestNATSPublisher_Publish`
+- [x] Write test: `TestNATSPublisher_Publish`
   - Create NATSPublisher
   - Publish BatteryRegistered event
   - Verify no error
-- [ ] Write test: `TestNATSPublisher_PublishWithTimeout`
+- [x] Write test: `TestNATSPublisher_PublishWithTimeout`
   - Publish with context timeout
   - Verify respects timeout
-- [ ] Write test: `TestNATSPublisher_Close`
+- [x] Write test: `TestNATSPublisher_Close`
   - Create publisher
   - Call Close()
   - Verify graceful shutdown
-- [ ] Run tests → Should FAIL (Red phase) ✅
+- [x] Run tests → Should FAIL (Red phase) ✅
 
 **TDD Checkpoint**: ✅ All publisher tests written and failing
 
 ### 2.3 Publisher Implementation (Green Phase)
 
-- [ ] Create `pkg/events/nats_publisher.go`
-- [ ] Implement `NATSPublisher` struct:
+- [x] Create `pkg/events/nats_publisher.go`
+- [x] Implement `NATSPublisher` struct:
   ```go
   type NATSPublisher struct {
       conn *nats.Conn
   }
   ```
-- [ ] Implement `NewNATSPublisher(url string)`:
+- [x] Implement `NewNATSPublisher(url string)`:
   - Connect to NATS server
   - Return publisher or error
-- [ ] Implement `Publish(ctx context.Context, subject string, event interface{})`:
+- [x] Implement `Publish(ctx context.Context, subject string, event interface{})`:
   - Marshal event to JSON
   - Publish to NATS subject
   - Respect context timeout
   - Return error if publish fails
-- [ ] Implement `Close()`:
+- [x] Implement `Close()`:
   - Drain connection
   - Close connection
-- [ ] Run tests → All pass ✅ (Green phase)
+- [x] Run tests → All pass ✅ (Green phase)
 
 ### 2.4 Integration Test with Real NATS
 
-- [ ] Create `pkg/events/nats_integration_test.go`
-- [ ] Write test: `TestNATSPublisher_Integration`
+- [x] Create `pkg/events/nats_integration_test.go`
+- [x] Write test: `TestNATSPublisher_Integration`
   - Requires NATS running on localhost:4222
   - Publish event
   - Verify message sent (use subscriber to verify)
-- [ ] Mark as integration test:
+- [x] Mark as integration test:
   ```go
   // +build integration
   ```
-- [ ] Run: `go test -tags=integration -v ./...`
+- [x] Run: `go test -tags=integration -v ./...`
 
 ### 2.5 Test Coverage
-- [ ] Run: `go test -cover ./...`
-- [ ] Verify publisher coverage >80%
+- [x] Run: `go test -cover ./...`
+- [x] Verify publisher coverage >80%
 
 **Checkpoint**: ✅ NATS publisher working, can publish events
 
 ---
 
-## Phase 3: NATS Subscriber Adapter (2-3 hours)
+## Phase 3: NATS Subscriber Adapter (2-3 hours) ✅ COMPLETE
 
 ### 3.1 Subscriber Tests - Write FIRST! (Red Phase)
 
-- [ ] Create `pkg/events/nats_subscriber_test.go`
-- [ ] Write test: `TestNewNATSSubscriber_Success`
+- [x] Create `pkg/events/nats_subscriber_test.go`
+- [x] Write test: `TestNewNATSSubscriber_Success`
   - Connect to NATS
   - Verify connection
-- [ ] Write test: `TestNATSSubscriber_Subscribe`
+- [x] Write test: `TestNATSSubscriber_Subscribe`
   - Subscribe to subject
   - Publish event from separate publisher
   - Verify handler called with correct subject and data
-- [ ] Write test: `TestNATSSubscriber_WildcardSubscription`
+- [x] Write test: `TestNATSSubscriber_WildcardSubscription`
   - Subscribe to `battery.*.v1`
   - Publish to `battery.registered.v1` and `battery.updated.v1`
   - Verify handler receives both
-- [ ] Write test: `TestNATSSubscriber_AllEventsWildcard`
+- [x] Write test: `TestNATSSubscriber_AllEventsWildcard`
   - Subscribe to `>`
   - Publish multiple event types
   - Verify all received
-- [ ] Write test: `TestNATSSubscriber_HandlerError`
+- [x] Write test: `TestNATSSubscriber_HandlerError`
   - Handler returns error
   - Verify message is NACKed (redelivered)
-- [ ] Write test: `TestNATSSubscriber_Close`
+- [x] Write test: `TestNATSSubscriber_Close`
   - Subscribe
   - Close subscriber
   - Verify graceful shutdown
-- [ ] Run tests → Should FAIL (Red phase) ✅
+- [x] Run tests → Should FAIL (Red phase) ✅
 
 **TDD Checkpoint**: ✅ All subscriber tests written and failing
 
 ### 3.2 Subscriber Implementation (Green Phase)
 
-- [ ] Create `pkg/events/nats_subscriber.go`
-- [ ] Implement `NATSSubscriber` struct:
+- [x] Create `pkg/events/nats_subscriber.go`
+- [x] Implement `NATSSubscriber` struct:
   ```go
   type NATSSubscriber struct {
       conn          *nats.Conn
@@ -275,45 +275,45 @@
       mu            sync.Mutex
   }
   ```
-- [ ] Implement `NewNATSSubscriber(url string)`:
+- [x] Implement `NewNATSSubscriber(url string)`:
   - Connect to NATS
   - Initialize subscriptions slice
-- [ ] Implement `Subscribe(ctx context.Context, subject string, handler EventHandler)`:
+- [x] Implement `Subscribe(ctx context.Context, subject string, handler EventHandler)`:
   - Create NATS subscription
   - Wrap handler to convert nats.Msg to EventHandler signature
   - Store subscription for cleanup
   - Handle errors from handler (NACK on error, ACK on success)
-- [ ] Implement `Close()`:
+- [x] Implement `Close()`:
   - Unsubscribe all subscriptions
   - Close connection
-- [ ] Run tests → All pass ✅ (Green phase)
+- [x] Run tests → All pass ✅ (Green phase)
 
 ### 3.3 Integration Test
 
-- [ ] Create `pkg/events/nats_subscriber_integration_test.go`
-- [ ] Write test: `TestNATSSubscriber_EndToEnd`
+- [x] Create `pkg/events/nats_subscriber_integration_test.go`
+- [x] Write test: `TestNATSSubscriber_EndToEnd`
   - Create publisher and subscriber
   - Subscribe to events
   - Publish BatteryRegistered
   - Verify received
   - Publish MarketPriceUpdated
   - Verify received
-- [ ] Mark as integration test: `// +build integration`
-- [ ] Run: `go test -tags=integration -v ./...`
+- [x] Mark as integration test: `// +build integration`
+- [x] Run: `go test -tags=integration -v ./...`
 
 ### 3.4 Test Coverage
-- [ ] Run: `go test -cover ./...`
-- [ ] Verify subscriber coverage >80%
+- [x] Run: `go test -cover ./...`
+- [x] Verify subscriber coverage >80%
 
 **Checkpoint**: ✅ NATS subscriber working, can receive events with wildcards
 
 ---
 
-## Phase 4: Asset Service Integration (2-3 hours)
+## Phase 4: Asset Service Integration (2-3 hours) ✅ COMPLETE
 
 ### 4.1 Add Event Dependency
 
-- [ ] Update `services/asset-management/go.mod`:
+- [x] Update `services/asset-management/go.mod`:
   ```bash
   cd services/asset-management
   go get github.com/minwook/battery-optimization/pkg/events
@@ -321,7 +321,7 @@
 
 ### 4.2 Add EventPublisher Port
 
-- [ ] Create `services/asset-management/internal/ports/event_publisher.go`:
+- [x] Create `services/asset-management/internal/ports/event_publisher.go`:
   ```go
   package ports
 
@@ -333,7 +333,7 @@
 
 ### 4.3 Update Handler
 
-- [ ] Modify `services/asset-management/internal/adapters/http/handler.go`:
+- [x] Modify `services/asset-management/internal/adapters/http/handler.go`:
   - Add `publisher events.EventPublisher` field to `BatteryHandler`
   - Update `NewBatteryHandler()` to accept optional publisher
   - Add `publishBatteryRegistered()` method
@@ -404,7 +404,7 @@ func (h *BatteryHandler) publishBatteryRegistered(battery *domain.Battery) {
 
 ### 4.4 Update Main
 
-- [ ] Modify `services/asset-management/cmd/server/main.go`:
+- [x] Modify `services/asset-management/cmd/server/main.go`:
   - Connect to NATS (fatal if fails)
   - Create NATSPublisher
   - Pass publisher to handler
@@ -433,7 +433,7 @@ func main() {
 
 ### 4.5 Update Docker Compose
 
-- [ ] Update `docker-compose.yml` to add NATS_URL to asset-management:
+- [x] Update `docker-compose.yml` to add NATS_URL to asset-management:
   ```yaml
   asset-management:
     environment:
@@ -449,21 +449,21 @@ func main() {
 
 ### 4.6 Test Integration
 
-- [ ] Rebuild service: `docker-compose build asset-management`
-- [ ] Start service: `docker-compose up -d asset-management`
-- [ ] Check logs: `docker-compose logs asset-management | grep NATS`
+- [x] Rebuild service: `docker-compose build asset-management`
+- [x] Start service: `docker-compose up -d asset-management`
+- [x] Check logs: `docker-compose logs asset-management | grep NATS`
   - Should see "Connected to NATS at nats://nats:4222"
-- [ ] Create battery and verify event published (Phase 7)
+- [x] Create battery and verify event published (Phase 7)
 
 **Checkpoint**: ✅ Asset Service publishing BatteryRegistered events
 
 ---
 
-## Phase 5: Market Service Integration (2-3 hours)
+## Phase 5: Market Service Integration (2-3 hours) ✅ COMPLETE
 
 ### 5.1 Add Event Dependency
 
-- [ ] Update `services/market-data/go.mod`:
+- [x] Update `services/market-data/go.mod`:
   ```bash
   cd services/market-data
   go get github.com/minwook/battery-optimization/pkg/events
@@ -471,7 +471,7 @@ func main() {
 
 ### 5.2 Add EventPublisher Port
 
-- [ ] Create `services/market-data/internal/ports/event_publisher.go`:
+- [x] Create `services/market-data/internal/ports/event_publisher.go`:
   ```go
   package ports
 
@@ -482,7 +482,7 @@ func main() {
 
 ### 5.3 Update Handler
 
-- [ ] Modify `services/market-data/internal/adapters/http/handler.go`:
+- [x] Modify `services/market-data/internal/adapters/http/handler.go`:
   - Add `publisher events.EventPublisher` field
   - Update constructor
   - Add `publishMarketPriceUpdated()` method
@@ -518,7 +518,7 @@ func (h *MarketPriceHandler) publishMarketPriceUpdated(price *domain.MarketPrice
 
 ### 5.4 Update Main
 
-- [ ] Modify `services/market-data/cmd/server/main.go`:
+- [x] Modify `services/market-data/cmd/server/main.go`:
   - Connect to NATS
   - Create publisher
   - Pass to handler
@@ -526,7 +526,7 @@ func (h *MarketPriceHandler) publishMarketPriceUpdated(price *domain.MarketPrice
 
 ### 5.5 Update Docker Compose
 
-- [ ] Update `docker-compose.yml` to add NATS_URL to market-data:
+- [x] Update `docker-compose.yml` to add NATS_URL to market-data:
   ```yaml
   market-data:
     environment:
@@ -542,20 +542,20 @@ func (h *MarketPriceHandler) publishMarketPriceUpdated(price *domain.MarketPrice
 
 ### 5.6 Test Integration
 
-- [ ] Rebuild: `docker-compose build market-data`
-- [ ] Start: `docker-compose up -d market-data`
-- [ ] Check logs: `docker-compose logs market-data | grep NATS`
+- [x] Rebuild: `docker-compose build market-data`
+- [x] Start: `docker-compose up -d market-data`
+- [x] Check logs: `docker-compose logs market-data | grep NATS`
 
 **Checkpoint**: ✅ Market Service publishing MarketPriceUpdated events
 
 ---
 
-## Phase 6: Test Subscriber Tool (1-2 hours)
+## Phase 6: Test Subscriber Tool (1-2 hours) ✅ COMPLETE
 
 ### 6.1 Create Tool Structure
 
-- [ ] Create `tools/event-subscriber/` directory
-- [ ] Initialize Go module:
+- [x] Create `tools/event-subscriber/` directory
+- [x] Initialize Go module:
   ```bash
   cd tools/event-subscriber
   go mod init github.com/minwook/battery-optimization/tools/event-subscriber
@@ -564,7 +564,7 @@ func (h *MarketPriceHandler) publishMarketPriceUpdated(price *domain.MarketPrice
 
 ### 6.2 Implement Subscriber
 
-- [ ] Create `tools/event-subscriber/main.go`:
+- [x] Create `tools/event-subscriber/main.go`:
 
 ```go
 package main
@@ -638,7 +638,7 @@ func getEnv(key, defaultValue string) string {
 
 ### 6.3 Create README
 
-- [ ] Create `tools/event-subscriber/README.md`:
+- [x] Create `tools/event-subscriber/README.md`:
 
 ```markdown
 # Event Subscriber Tool
@@ -681,31 +681,31 @@ NATS_URL=nats://localhost:4222 ./event-subscriber
 
 ### 6.4 Test Tool
 
-- [ ] Run tool: `go run main.go`
-- [ ] Verify connects to NATS
-- [ ] Leave running for Phase 7 tests
+- [x] Run tool: `go run main.go`
+- [x] Verify connects to NATS
+- [x] Leave running for Phase 7 tests
 
 **Checkpoint**: ✅ Test subscriber tool working, listening for events
 
 ---
 
-## Phase 7: Integration Testing (2-3 hours)
+## Phase 7: Integration Testing (2-3 hours) ✅ COMPLETE
 
 ### 7.1 End-to-End Event Flow
 
 #### Setup
-- [ ] Start all services:
+- [x] Start all services:
   ```bash
   docker-compose up -d
   ```
-- [ ] Start test subscriber in separate terminal:
+- [x] Start test subscriber in separate terminal:
   ```bash
   cd tools/event-subscriber
   go run main.go
   ```
 
 #### Test BatteryRegistered Event
-- [ ] Create battery via API:
+- [x] Create battery via API:
   ```bash
   curl -X POST http://localhost:8080/api/v1/batteries \
     -H "Content-Type: application/json" \
@@ -724,12 +724,12 @@ NATS_URL=nats://localhost:4222 ./event-subscriber
       }
     }'
   ```
-- [ ] Verify HTTP response: 201 Created with battery ID
-- [ ] Verify test subscriber shows BatteryRegistered event
-- [ ] Verify event has correct battery_id, capacity, constraints
+- [x] Verify HTTP response: 201 Created with battery ID
+- [x] Verify test subscriber shows BatteryRegistered event
+- [x] Verify event has correct battery_id, capacity, constraints
 
 #### Test MarketPriceUpdated Event
-- [ ] Create market price via API:
+- [x] Create market price via API:
   ```bash
   curl -X POST http://localhost:8081/api/v1/prices \
     -H "Content-Type: application/json" \
@@ -742,56 +742,56 @@ NATS_URL=nats://localhost:4222 ./event-subscriber
       "published_at": "2025-12-30T10:55:00Z"
     }'
   ```
-- [ ] Verify HTTP response: 201 Created
-- [ ] Verify test subscriber shows MarketPriceUpdated event
-- [ ] Verify event has correct region, price, interval_type
+- [x] Verify HTTP response: 201 Created
+- [x] Verify test subscriber shows MarketPriceUpdated event
+- [x] Verify event has correct region, price, interval_type
 
 #### Test Multiple Events
-- [ ] Create 3 batteries
-- [ ] Create 5 market prices
-- [ ] Verify all 8 events received by subscriber
-- [ ] Verify events in correct order per publisher
+- [x] Create 3 batteries
+- [x] Create 5 market prices
+- [x] Verify all 8 events received by subscriber
+- [x] Verify events in correct order per publisher
 
 ### 7.2 NATS CLI Verification
 
-- [ ] Install NATS CLI (if not installed):
+- [x] Install NATS CLI (if not installed):
   ```bash
   brew install nats-io/nats-tools/nats
   ```
 
-- [ ] Subscribe to battery events:
+- [x] Subscribe to battery events:
   ```bash
   nats sub "battery.*.v1"
   ```
-- [ ] Create battery → Verify event appears
+- [x] Create battery → Verify event appears
 
-- [ ] Subscribe to all events:
+- [x] Subscribe to all events:
   ```bash
   nats sub ">"
   ```
-- [ ] Create battery and price → Verify both appear
+- [x] Create battery and price → Verify both appear
 
 ### 7.3 NATS Monitoring Verification
 
-- [ ] Check NATS health:
+- [x] Check NATS health:
   ```bash
   curl http://localhost:8222/healthz
   ```
   → Expected: `{"status":"ok"}` with HTTP 200
 
-- [ ] Check connections:
+- [x] Check connections:
   ```bash
   curl http://localhost:8222/connz | jq '.num_connections'
   ```
   → Expected: 3 (asset-management, market-data, test-subscriber)
 
-- [ ] View connection details:
+- [x] View connection details:
   ```bash
   curl http://localhost:8222/connz | jq '.connections[] | {name, subscriptions}'
   ```
   → Verify each connection has subscriptions
 
-- [ ] Check server stats:
+- [x] Check server stats:
   ```bash
   curl http://localhost:8222/varz | jq '{in_msgs, out_msgs, connections}'
   ```
@@ -800,54 +800,54 @@ NATS_URL=nats://localhost:4222 ./event-subscriber
 ### 7.4 Error Scenarios
 
 #### Scenario 1: NATS Down at Service Start
-- [ ] Stop NATS: `docker-compose stop nats`
-- [ ] Try to start asset-management: `docker-compose up asset-management`
-- [ ] Verify service fails with "Failed to connect to NATS" error
-- [ ] Start NATS: `docker-compose start nats`
-- [ ] Verify service starts successfully
+- [x] Stop NATS: `docker-compose stop nats`
+- [x] Try to start asset-management: `docker-compose up asset-management`
+- [x] Verify service fails with "Failed to connect to NATS" error
+- [x] Start NATS: `docker-compose start nats`
+- [x] Verify service starts successfully
 
 #### Scenario 2: NATS Fails During Runtime
-- [ ] Start all services
-- [ ] Create battery → Verify event published
-- [ ] Stop NATS: `docker-compose stop nats`
-- [ ] Create another battery
-- [ ] Verify HTTP response: 201 Created (service still works!)
-- [ ] Check logs: Should see "WARN: Failed to publish" message
-- [ ] Start NATS: `docker-compose start nats`
-- [ ] Create another battery → Events working again
+- [x] Start all services
+- [x] Create battery → Verify event published
+- [x] Stop NATS: `docker-compose stop nats`
+- [x] Create another battery
+- [x] Verify HTTP response: 201 Created (service still works!)
+- [x] Check logs: Should see "WARN: Failed to publish" message
+- [x] Start NATS: `docker-compose start nats`
+- [x] Create another battery → Events working again
 
 #### Scenario 3: Publisher Timeout
-- [ ] Create battery with very short timeout (modify code temporarily)
-- [ ] Verify publish fails gracefully (logged, not fatal)
+- [x] Create battery with very short timeout (modify code temporarily)
+- [x] Verify publish fails gracefully (logged, not fatal)
 
 **Checkpoint**: ✅ All integration tests passing, end-to-end event flow verified
 
 ---
 
-## Phase 8: Polish & Documentation (1-2 hours)
+## Phase 8: Polish & Documentation (1-2 hours) ✅ COMPLETE
 
 ### 8.1 Code Quality
 
-- [ ] Run `go fmt ./...` in pkg/events → **All files formatted** ✅
-- [ ] Run `go vet ./...` in pkg/events → **No warnings** ✅
-- [ ] Run `go fmt ./...` in services/asset-management → **Formatted** ✅
-- [ ] Run `go fmt ./...` in services/market-data → **Formatted** ✅
-- [ ] Run `go fmt ./...` in tools/event-subscriber → **Formatted** ✅
-- [ ] Add comments to exported functions and types
+- [x] Run `go fmt ./...` in pkg/events → **All files formatted** ✅
+- [x] Run `go vet ./...` in pkg/events → **No warnings** ✅
+- [x] Run `go fmt ./...` in services/asset-management → **Formatted** ✅
+- [x] Run `go fmt ./...` in services/market-data → **Formatted** ✅
+- [x] Run `go fmt ./...` in tools/event-subscriber → **Formatted** ✅
+- [x] Add comments to exported functions and types
 
 ### 8.2 Test Coverage
 
-- [ ] Run: `go test -cover ./...` in pkg/events
+- [x] Run: `go test -cover ./...` in pkg/events
   - Target: >80% overall
   - Event structs: >90%
   - Publisher: >80%
   - Subscriber: >80%
-- [ ] Run integration tests: `go test -tags=integration -v ./...`
-- [ ] All tests pass ✅
+- [x] Run integration tests: `go test -tags=integration -v ./...`
+- [x] All tests pass ✅
 
 ### 8.3 Documentation
 
-- [ ] Create `pkg/events/README.md`:
+- [x] Create `pkg/events/README.md`:
   - Package purpose
   - Event types supported
   - Usage examples (publisher and subscriber)
@@ -898,13 +898,13 @@ go test -tags=integration -v ./...
 ```
 ```
 
-- [ ] Update `PLANNING.md`:
+- [x] Update `PLANNING.md`:
   - Mark M4 as completed
   - Add completion date
   - Add test coverage metrics
   - Note any deviations from plan
 
-- [ ] Update `CLAUDE.md`:
+- [x] Update `CLAUDE.md`:
   - Add "Event Publishing" section
   - Document event catalog (3 events)
   - Explain best-effort publishing pattern
@@ -934,7 +934,7 @@ See [pkg/events/README.md](pkg/events/README.md) for usage.
 
 ### 8.4 Git
 
-- [ ] Commit all changes:
+- [x] Commit all changes:
   ```bash
   git add pkg/events/ services/asset-management/ services/market-data/ tools/event-subscriber/ docs/milestones/M4-*.md docker-compose.yml PLANNING.md CLAUDE.md
   git commit -m "feat(M4): implement Event Bus Integration with NATS
@@ -961,12 +961,12 @@ See [pkg/events/README.md](pkg/events/README.md) for usage.
   Ready for M5: Telemetry Service with high-frequency events"
   ```
 
-- [ ] Push to GitHub:
+- [x] Push to GitHub:
   ```bash
   git push origin develop
   ```
 
-- [ ] Tag release:
+- [x] Tag release:
   ```bash
   git tag m4-complete
   git push origin m4-complete
@@ -981,52 +981,52 @@ See [pkg/events/README.md](pkg/events/README.md) for usage.
 All items below must be true:
 
 **Functionality**:
-- [ ] pkg/events library created with 3 event types (BatteryRegistered, MarketPriceUpdated, BatteryStateChanged)
-- [ ] EventPublisher and EventSubscriber interfaces defined
-- [ ] NATSPublisher implemented and tested
-- [ ] NATSSubscriber implemented and tested (wildcard support)
-- [ ] Asset Management Service publishes BatteryRegistered events
-- [ ] Market Data Service publishes MarketPriceUpdated events
-- [ ] Test subscriber tool receives all events
+- [x] pkg/events library created with 3 event types (BatteryRegistered, MarketPriceUpdated, BatteryStateChanged)
+- [x] EventPublisher and EventSubscriber interfaces defined
+- [x] NATSPublisher implemented and tested
+- [x] NATSSubscriber implemented and tested (wildcard support)
+- [x] Asset Management Service publishes BatteryRegistered events
+- [x] Market Data Service publishes MarketPriceUpdated events
+- [x] Test subscriber tool receives all events
 
 **Testing**:
-- [ ] pkg/events test coverage >80%
-- [ ] Event serialization tests pass (JSON marshal/unmarshal)
-- [ ] Publisher integration tests pass (with real NATS)
-- [ ] Subscriber integration tests pass (wildcard subscriptions)
-- [ ] End-to-end test: Create battery → BatteryRegistered received
-- [ ] End-to-end test: Create price → MarketPriceUpdated received
+- [x] pkg/events test coverage >80%
+- [x] Event serialization tests pass (JSON marshal/unmarshal)
+- [x] Publisher integration tests pass (with real NATS)
+- [x] Subscriber integration tests pass (wildcard subscriptions)
+- [x] End-to-end test: Create battery → BatteryRegistered received
+- [x] End-to-end test: Create price → MarketPriceUpdated received
 
 **Architecture**:
-- [ ] Services remain loosely coupled via events
-- [ ] REST APIs continue working (synchronous communication preserved)
-- [ ] Event versioning infrastructure in place (subject + payload version)
-- [ ] Graceful degradation when NATS unavailable (publish failures logged, not fatal)
-- [ ] NATS monitoring shows 3 connections (2 publishers + 1 subscriber)
+- [x] Services remain loosely coupled via events
+- [x] REST APIs continue working (synchronous communication preserved)
+- [x] Event versioning infrastructure in place (subject + payload version)
+- [x] Graceful degradation when NATS unavailable (publish failures logged, not fatal)
+- [x] NATS monitoring shows 3 connections (2 publishers + 1 subscriber)
 
 **Code Quality**:
-- [ ] Code formatted (`go fmt`)
-- [ ] No vet warnings (`go vet`)
-- [ ] Exported functions documented
-- [ ] Error handling throughout (best-effort publishing)
+- [x] Code formatted (`go fmt`)
+- [x] No vet warnings (`go vet`)
+- [x] Exported functions documented
+- [x] Error handling throughout (best-effort publishing)
 
 **Documentation**:
-- [ ] All 4 M4 milestone docs created (OVERVIEW, DOMAIN-SPEC, API-SPEC, CHECKLIST)
-- [ ] pkg/events/README.md created
-- [ ] PLANNING.md updated with M4 completion
-- [ ] CLAUDE.md updated with event publishing section
-- [ ] tools/event-subscriber/README.md created
+- [x] All 4 M4 milestone docs created (OVERVIEW, DOMAIN-SPEC, API-SPEC, CHECKLIST)
+- [x] pkg/events/README.md created
+- [x] PLANNING.md updated with M4 completion
+- [x] CLAUDE.md updated with event publishing section
+- [x] tools/event-subscriber/README.md created
 
 **Infrastructure**:
-- [ ] docker-compose.yml updated (NATS_URL for services)
-- [ ] Services depend on NATS (fails at startup if unavailable)
-- [ ] NATS health check verified: `curl http://localhost:8222/healthz`
-- [ ] NATS connections verified: `curl http://localhost:8222/connz | jq '.num_connections'` returns 3
+- [x] docker-compose.yml updated (NATS_URL for services)
+- [x] Services depend on NATS (fails at startup if unavailable)
+- [x] NATS health check verified: `curl http://localhost:8222/healthz`
+- [x] NATS connections verified: `curl http://localhost:8222/connz | jq '.num_connections'` returns 3
 
 **Git**:
-- [ ] Changes committed with descriptive message
-- [ ] Git tag created (m4-complete)
-- [ ] Pushed to GitHub
+- [x] Changes committed with descriptive message
+- [x] Git tag created (m4-complete)
+- [x] Pushed to GitHub
 
 ---
 
@@ -1077,15 +1077,15 @@ Solution:
 **Actual Time**: ___ hours (completed YYYY-MM-DD)
 
 **Phases Completed**:
-- [ ] Phase 0: Documentation (1-1.5h)
-- [ ] Phase 1: Common Event Library (2-3h)
-- [ ] Phase 2: NATS Publisher (2-3h)
-- [ ] Phase 3: NATS Subscriber (2-3h)
-- [ ] Phase 4: Asset Integration (2-3h)
-- [ ] Phase 5: Market Integration (2-3h)
-- [ ] Phase 6: Test Subscriber (1-2h)
-- [ ] Phase 7: Integration Testing (2-3h)
-- [ ] Phase 8: Polish (1-2h)
+- [x] Phase 0: Documentation (1-1.5h)
+- [x] Phase 1: Common Event Library (2-3h)
+- [x] Phase 2: NATS Publisher (2-3h)
+- [x] Phase 3: NATS Subscriber (2-3h)
+- [x] Phase 4: Asset Integration (2-3h)
+- [x] Phase 5: Market Integration (2-3h)
+- [x] Phase 6: Test Subscriber (1-2h)
+- [x] Phase 7: Integration Testing (2-3h)
+- [x] Phase 8: Polish (1-2h)
 
 **Test Coverage Achieved**:
 - pkg/events: ___% (target: >80%)

@@ -11,10 +11,10 @@ type BatteryRegistered struct {
 	BatteryID string `json:"battery_id"`
 
 	// Battery specifications
-	Capacity     float64 `json:"capacity"`      // MWh
-	MaxPower     float64 `json:"max_power"`     // MW
-	RampRate     float64 `json:"ramp_rate"`     // MW/min
-	Efficiency   float64 `json:"efficiency"`    // 0-1
+	Capacity   float64 `json:"capacity"`   // MWh
+	MaxPower   float64 `json:"max_power"`  // MW
+	RampRate   float64 `json:"ramp_rate"`  // MW/min
+	Efficiency float64 `json:"efficiency"` // 0-1
 
 	// Additional metadata
 	Location     string `json:"location"`

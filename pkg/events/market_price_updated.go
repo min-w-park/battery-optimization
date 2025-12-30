@@ -11,12 +11,12 @@ type MarketPriceUpdated struct {
 	PriceID string `json:"price_id"`
 
 	// Market data
-	Region        string    `json:"region"`          // NSW, VIC, QLD, SA, TAS
-	Price         float64   `json:"price"`           // $/MWh
-	Demand        float64   `json:"demand"`          // MW
-	IntervalType  string    `json:"interval_type"`   // 5MIN_PREDISPATCH, 30MIN_PREDISPATCH
-	IntervalStart time.Time `json:"interval_start"`  // When this price applies
-	PublishedAt   time.Time `json:"published_at"`    // When AEMO published it
+	Region        string    `json:"region"`         // NSW, VIC, QLD, SA, TAS
+	Price         float64   `json:"price"`          // $/MWh
+	Demand        float64   `json:"demand"`         // MW
+	IntervalType  string    `json:"interval_type"`  // 5MIN_PREDISPATCH, 30MIN_PREDISPATCH
+	IntervalStart time.Time `json:"interval_start"` // When this price applies
+	PublishedAt   time.Time `json:"published_at"`   // When AEMO published it
 
 	// Event metadata
 	Timestamp    time.Time `json:"timestamp"`

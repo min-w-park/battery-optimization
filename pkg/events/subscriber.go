@@ -13,17 +13,18 @@ import "context"
 //   - error: Event processing failed (message will be NACKed and redelivered)
 //
 // Example:
-//   handler := func(subject string, data []byte) error {
-//       var event events.BatteryRegistered
-//       if err := json.Unmarshal(data, &event); err != nil {
-//           log.Printf("ERROR: Invalid JSON: %v", err)
-//           return nil // ACK anyway - malformed JSON won't fix itself
-//       }
 //
-//       // Process event...
-//       log.Printf("Received: %s - Battery %s", subject, event.BatteryID)
-//       return nil
-//   }
+//	handler := func(subject string, data []byte) error {
+//	    var event events.BatteryRegistered
+//	    if err := json.Unmarshal(data, &event); err != nil {
+//	        log.Printf("ERROR: Invalid JSON: %v", err)
+//	        return nil // ACK anyway - malformed JSON won't fix itself
+//	    }
+//
+//	    // Process event...
+//	    log.Printf("Received: %s - Battery %s", subject, event.BatteryID)
+//	    return nil
+//	}
 type EventHandler func(subject string, data []byte) error
 
 // EventSubscriber subscribes to domain events from NATS.
@@ -32,22 +33,23 @@ type EventHandler func(subject string, data []byte) error
 //   - NATSSubscriber: Subscribes to events from NATS message broker
 //
 // Usage:
-//   subscriber, err := events.NewNATSSubscriber("nats://localhost:4222")
-//   if err != nil {
-//       log.Fatal(err)
-//   }
-//   defer subscriber.Close()
 //
-//   handler := func(subject string, data []byte) error {
-//       log.Printf("Received: %s", subject)
-//       return nil
-//   }
+//	subscriber, err := events.NewNATSSubscriber("nats://localhost:4222")
+//	if err != nil {
+//	    log.Fatal(err)
+//	}
+//	defer subscriber.Close()
 //
-//   // Subscribe to all battery events (v1)
-//   err = subscriber.Subscribe(ctx, "battery.*.v1", handler)
+//	handler := func(subject string, data []byte) error {
+//	    log.Printf("Received: %s", subject)
+//	    return nil
+//	}
 //
-//   // Subscribe to all events
-//   err = subscriber.Subscribe(ctx, ">", handler)
+//	// Subscribe to all battery events (v1)
+//	err = subscriber.Subscribe(ctx, "battery.*.v1", handler)
+//
+//	// Subscribe to all events
+//	err = subscriber.Subscribe(ctx, ">", handler)
 type EventSubscriber interface {
 	// Subscribe registers a handler for events matching the subject pattern.
 	//

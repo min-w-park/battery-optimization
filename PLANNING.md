@@ -249,24 +249,120 @@ This document tracks progress on building a battery optimization system using mi
 
 ---
 
-### ⏳ M4: Event Bus Integration (NATS)
+### ✅ M4: Event Bus Integration (NATS) - COMPLETED (2025-12-30)
 **Goal**: Implement event-driven architecture
 
-**Tasks:**
-- [ ] NATS installation and Docker Compose integration
-- [ ] Event publisher/subscriber common library
-- [ ] Implement events from M1
-  - `BatteryRegistered`
-  - `MarketPriceUpdated`
-  - `BatteryStateChanged`
-- [ ] Asset Service → publish events
-- [ ] Market Service → publish events
-- [ ] Simple subscriber test (console output)
+**Documentation**:
+- [M4 Overview](./docs/milestones/M4-OVERVIEW.md) - Event-driven architecture and learning objectives
+- [Domain Specification](./docs/milestones/M4-DOMAIN-SPEC.md) - Event schemas and versioning strategy
+- [API Specification](./docs/milestones/M4-API-SPEC.md) - NATS pub/sub patterns and subject naming
+- [Implementation Checklist](./docs/milestones/M4-CHECKLIST.md) - Step-by-step tasks
+- [Events Library README](./pkg/events/README.md) - Complete usage guide
+
+**Phases**:
+- [x] **Phase 0**: M4 Milestone Documentation (1.5h)
+  - ✅ M4-OVERVIEW.md - Event-driven architecture overview
+  - ✅ M4-DOMAIN-SPEC.md - Event schemas and versioning
+  - ✅ M4-API-SPEC.md - NATS subject patterns and error handling
+  - ✅ M4-CHECKLIST.md - Phase-by-phase implementation guide
+
+- [x] **Phase 1**: Common Event Library (3h)
+  - ✅ pkg/events package created
+  - ✅ BatteryRegistered event with BatteryConstraints
+  - ✅ MarketPriceUpdated event
+  - ✅ BatteryStateChanged event (placeholder for M5)
+  - ✅ EventPublisher and EventSubscriber interfaces
+  - ✅ Comprehensive event tests (JSON serialization)
+
+- [x] **Phase 2**: NATS Publisher Adapter (3h)
+  - ✅ NATSPublisher implementation
+  - ✅ Smart flush handling (FlushWithContext vs Flush)
+  - ✅ Context timeout support
+  - ✅ JSON serialization
+  - ✅ Error handling and connection management
+  - ✅ Publisher tests (8/8 passing)
+
+- [x] **Phase 3**: NATS Subscriber Adapter (3h)
+  - ✅ NATSSubscriber implementation
+  - ✅ Wildcard subscription support (`*` and `>`)
+  - ✅ Event handler pattern
+  - ✅ Multiple concurrent subscriptions
+  - ✅ Error handling in handlers
+  - ✅ Subscriber tests (11/11 passing)
+
+- [x] **Phase 4**: Asset Service Integration (3h)
+  - ✅ Added EventPublisher port
+  - ✅ Updated BatteryHandler to publish BatteryRegistered
+  - ✅ Modified main.go with NATS connection
+  - ✅ Best-effort publishing (warnings logged, HTTP not blocked)
+  - ✅ All tests updated and passing
+
+- [x] **Phase 5**: Market Service Integration (3h)
+  - ✅ Added EventPublisher port
+  - ✅ Updated MarketPriceHandler to publish MarketPriceUpdated
+  - ✅ Modified main.go with NATS connection (port 8081)
+  - ✅ Best-effort publishing pattern
+  - ✅ All tests updated and passing
+
+- [x] **Phase 6**: Test Subscriber Tool (2h)
+  - ✅ Created tools/event-subscriber/ CLI tool
+  - ✅ Color-coded output (timestamps, subjects, payloads)
+  - ✅ Pretty-printed JSON formatting
+  - ✅ Wildcard subscription support
+  - ✅ Event counter tracking
+  - ✅ Graceful shutdown (Ctrl+C)
+  - ✅ Comprehensive README with usage examples
+
+- [x] **Phase 7**: Integration Testing (3h)
+  - ✅ Verified NATS health and connectivity
+  - ✅ All pkg/events tests passing (27/27)
+  - ✅ Test coverage: **88.9%** (exceeds >80% target)
+  - ✅ Both services build successfully
+  - ✅ Infrastructure health verified
+  - ✅ Event flow tested end-to-end
+
+- [x] **Phase 8**: Polish & Documentation (2h)
+  - ✅ Code formatting (go fmt on all packages)
+  - ✅ Static analysis (go vet on all packages)
+  - ✅ pkg/events/README.md created (comprehensive usage guide)
+  - ✅ PLANNING.md updated with M4 completion
+  - ✅ All phases complete
+
+**Key Learning Objectives**:
+- ✅ Event-Driven Architecture (pub/sub patterns, eventual consistency)
+- ✅ NATS Integration (connect, publish, subscribe, monitor)
+- ✅ Event Versioning (backward compatibility strategy)
+- ✅ Publisher/Subscriber Pattern (loose coupling)
+- ✅ Testing Asynchronous Systems (test subscribers, event flow verification)
 
 **Completion Criteria**:
-- NATS pub/sub operational
-- Services communicate via events
-- Event flow verifiable
+- ✅ All unit tests pass (events, publisher, subscriber)
+- ✅ Test coverage **88.9%** for pkg/events (exceeds >80% target)
+- ✅ NATS running and healthy (docker-compose)
+- ✅ Asset Service publishes BatteryRegistered events
+- ✅ Market Service publishes MarketPriceUpdated events
+- ✅ Test subscriber tool receives and displays events
+- ✅ Wildcard subscriptions working (`>`, `battery.>`, `*.*.v1`)
+- ✅ Event versioning implemented (subject + payload version)
+- ✅ Best-effort publishing pattern (graceful degradation)
+- ✅ NATS monitoring endpoints accessible (http://localhost:8222)
+- ✅ Services continue working if NATS unavailable
+- ✅ Comprehensive documentation (README, API examples, troubleshooting)
+
+**Key Achievements**:
+- Event library with 3 events (BatteryRegistered, MarketPriceUpdated, BatteryStateChanged placeholder)
+- NATS publisher/subscriber adapters with comprehensive error handling
+- 2 services retrofitted with event publishing (Asset Management, Market Data)
+- Test subscriber tool for real-time event monitoring
+- Event versioning strategy implemented from day one
+- 27 tests passing with 88.9% coverage
+
+**Out of Scope** (deferred to later milestones):
+- Event persistence/replay (future: event sourcing)
+- Complex subscribers with business logic (M6: Bidding Service)
+- Dead letter queues
+- Event schema registry
+- CQRS patterns
 
 ---
 

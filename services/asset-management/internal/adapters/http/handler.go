@@ -80,8 +80,8 @@ func (h *BatteryHandler) CreateBattery(w http.ResponseWriter, r *http.Request) {
 			Manufacturer: battery.Manufacturer,
 			Constraints: events.BatteryConstraints{
 				// Default SoC constraints (10%-90% operational range)
-				MinSoC:              0.1,
-				MaxSoC:              0.9,
+				MinSoC: 0.1,
+				MaxSoC: 0.9,
 				// Physical/warranty constraints from domain
 				WarrantyEOL:         battery.Constraints.WarrantyEOL,
 				MaxCycles:           battery.Constraints.MaxCycles,
