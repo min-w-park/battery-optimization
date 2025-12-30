@@ -183,15 +183,15 @@ This checklist contains **1400+ lines** with granular TDD workflow steps. The un
 ### 1.2 Domain Errors (TDD - Tests First!)
 
 #### Write Tests FIRST (Red Phase)
-- [ ] Create `internal/domain/errors_test.go`
-- [ ] Write test: `TestDomainErrors_Unwrap`
+- [x] Create `internal/domain/errors_test.go`
+- [x] Write test: `TestDomainErrors_Unwrap`
   - Verify errors implement error interface
   - Test error messages
-- [ ] Run tests → Should FAIL ✅
+- [x] Run tests → Should FAIL ✅
 
 #### Implementation (Green Phase)
-- [ ] Create `internal/domain/errors.go`
-- [ ] Define domain errors:
+- [x] Create `internal/domain/errors.go`
+- [x] Define domain errors:
   ```go
   var (
       ErrInvalidSoC              = errors.New("invalid SoC value")
@@ -203,43 +203,43 @@ This checklist contains **1400+ lines** with granular TDD workflow steps. The un
       ErrBatteryNotFound         = errors.New("battery not found")
   )
   ```
-- [ ] Run tests → All pass ✅
+- [x] Run tests → All pass ✅
 
 ### 1.3 BatteryState Aggregate (TDD - Tests First!)
 
 #### Write Tests FIRST (Red Phase)
-- [ ] Create `internal/domain/battery_state_test.go`
-- [ ] Write test: `TestNewBatteryState_ValidInput`
+- [x] Create `internal/domain/battery_state_test.go`
+- [x] Write test: `TestNewBatteryState_ValidInput`
   - Create BatteryState with all valid fields
   - Verify ID is generated (UUID)
   - Verify CreatedAt is set
   - Verify all fields match input
-- [ ] Write test: `TestNewBatteryState_InvalidSoC`
+- [x] Write test: `TestNewBatteryState_InvalidSoC`
   - Test SoC < 0
   - Test SoC > 100
   - Verify returns ErrInvalidSoC
-- [ ] Write test: `TestNewBatteryState_InvalidTemperature`
+- [x] Write test: `TestNewBatteryState_InvalidTemperature`
   - Test temperature < -20°C
   - Test temperature > 60°C
   - Verify returns ErrInvalidTemperature
-- [ ] Write test: `TestNewBatteryState_InvalidOperationState`
+- [x] Write test: `TestNewBatteryState_InvalidOperationState`
   - Test invalid enum values
   - Verify returns ErrInvalidOperationState
-- [ ] Write test: `TestNewBatteryState_PowerConsistency`
+- [x] Write test: `TestNewBatteryState_PowerConsistency`
   - IDLE with non-zero power → error
   - CHARGING with positive power → error
   - DISCHARGING with negative power → error
   - Verify returns ErrInconsistentPowerState
-- [ ] Write test: `TestNewBatteryState_MissingRequiredFields`
+- [x] Write test: `TestNewBatteryState_MissingRequiredFields`
   - Empty BatteryID → error
   - Zero timestamp → error
-- [ ] Run tests → Should FAIL (Red phase) ✅
+- [x] Run tests → Should FAIL (Red phase) ✅
 
 **TDD Checkpoint**: ✅ All BatteryState tests written and failing
 
 #### Implementation (Green Phase)
-- [ ] Create `internal/domain/battery_state.go`
-- [ ] Define BatteryState struct:
+- [x] Create `internal/domain/battery_state.go`
+- [x] Define BatteryState struct:
   ```go
   type BatteryState struct {
       ID               string
@@ -256,7 +256,7 @@ This checklist contains **1400+ lines** with granular TDD workflow steps. The un
   }
   ```
 
-- [ ] Define operation state constants:
+- [x] Define operation state constants:
   ```go
   const (
       OperationStateIdle        = "IDLE"
@@ -266,7 +266,7 @@ This checklist contains **1400+ lines** with granular TDD workflow steps. The un
   )
   ```
 
-- [ ] Implement `NewBatteryState()` constructor with validation:
+- [x] Implement `NewBatteryState()` constructor with validation:
   - Generate UUID for ID
   - Set CreatedAt to time.Now()
   - Validate SoC (0-100)
@@ -276,9 +276,9 @@ This checklist contains **1400+ lines** with granular TDD workflow steps. The un
   - Validate required fields (BatteryID, Timestamp)
   - Validate timestamp not in future
 
-- [ ] Implement `Validate()` method
+- [x] Implement `Validate()` method
 
-- [ ] Run tests → All pass ✅ (Green phase)
+- [x] Run tests → All pass ✅ (Green phase)
 
 ### 1.4 Test Coverage
 - [x] Run: `go test -cover ./internal/domain/...`
@@ -298,7 +298,7 @@ This checklist contains **1400+ lines** with granular TDD workflow steps. The un
 ### 2.1 Repository Port (Interface)
 
 - [x] Create `internal/ports/repository.go`
-- [ ] Define TelemetryRepository interface:
+- [x] Define TelemetryRepository interface:
   ```go
   type TelemetryRepository interface {
       SaveState(ctx context.Context, state *domain.BatteryState) error
@@ -347,49 +347,49 @@ This checklist contains **1400+ lines** with granular TDD workflow steps. The un
 
 ### 2.3 PostgreSQL Repository Tests (TDD - Tests First!)
 
-- [ ] Create `internal/adapters/postgres/repository_test.go`
-- [ ] Write test helper: `setupTestDB(t *testing.T) *sql.DB`
+- [x] Create `internal/adapters/postgres/repository_test.go`
+- [x] Write test helper: `setupTestDB(t *testing.T) *sql.DB`
   - Connect to telemetry-db: `postgres://telemetry_user:telemetry_pass@localhost:5434/telemetry?sslmode=disable`
   - Run migrations
   - Return DB connection
-- [ ] Write test helper: `cleanupTestDB(t *testing.T, db *sql.DB)`
+- [x] Write test helper: `cleanupTestDB(t *testing.T, db *sql.DB)`
   - Drop tables
   - Close connection
 
-- [ ] Write test: `TestSaveState_Success`
+- [x] Write test: `TestSaveState_Success`
   - Create valid BatteryState
   - Save to repository
   - Verify no error
   - Verify can retrieve by ID
 
-- [ ] Write test: `TestGetCurrentState_Success`
+- [x] Write test: `TestGetCurrentState_Success`
   - Save multiple states for same battery (different timestamps)
   - Call GetCurrentState
   - Verify returns latest state (highest timestamp)
 
-- [ ] Write test: `TestGetCurrentState_NotFound`
+- [x] Write test: `TestGetCurrentState_NotFound`
   - Call GetCurrentState for non-existent battery
   - Verify returns ErrBatteryNotFound
 
-- [ ] Write test: `TestGetHistory_TimeRange`
+- [x] Write test: `TestGetHistory_TimeRange`
   - Save 10 states across 1 hour
   - Query with startTime/endTime
   - Verify correct states returned
   - Verify ordered by timestamp DESC
 
-- [ ] Write test: `TestGetHistory_Pagination`
+- [x] Write test: `TestGetHistory_Pagination`
   - Save 100 states
   - Query with limit=10, offset=20
   - Verify returns states 21-30
 
-- [ ] Run tests → Should FAIL (Red phase) ✅
+- [x] Run tests → Should FAIL (Red phase) ✅
 
 **TDD Checkpoint**: ✅ All repository tests written and failing
 
 ### 2.4 PostgreSQL Repository Implementation (Green Phase)
 
-- [ ] Create `internal/adapters/postgres/repository.go`
-- [ ] Implement `PostgresRepository` struct:
+- [x] Create `internal/adapters/postgres/repository.go`
+- [x] Implement `PostgresRepository` struct:
   ```go
   type PostgresRepository struct {
       db *sql.DB
@@ -400,24 +400,24 @@ This checklist contains **1400+ lines** with granular TDD workflow steps. The un
   }
   ```
 
-- [ ] Implement `SaveState`:
+- [x] Implement `SaveState`:
   - Marshal CustomAttributes to JSON
   - INSERT statement
   - Error handling (duplicate key, constraint violation)
 
-- [ ] Implement `GetCurrentState`:
+- [x] Implement `GetCurrentState`:
   - SELECT with ORDER BY timestamp DESC LIMIT 1
   - Unmarshal CustomAttributes from JSONB
   - Map SQL NULL to nil
   - Return ErrBatteryNotFound if no rows
 
-- [ ] Implement `GetHistory`:
+- [x] Implement `GetHistory`:
   - SELECT with WHERE battery_id = $1 AND timestamp BETWEEN $2 AND $3
   - ORDER BY timestamp DESC
   - LIMIT and OFFSET for pagination
   - Scan all rows into []*BatteryState
 
-- [ ] Run tests → All pass ✅ (Green phase)
+- [x] Run tests → All pass ✅ (Green phase)
 
 ### 2.5 Test Coverage
 - [x] Run: `go test -cover ./internal/adapters/postgres/...`
@@ -435,8 +435,8 @@ This checklist contains **1400+ lines** with granular TDD workflow steps. The un
 
 ### 3.1 DTOs (Data Transfer Objects)
 
-- [ ] Create `internal/adapters/http/dto.go`
-- [ ] Define request/response DTOs:
+- [x] Create `internal/adapters/http/dto.go`
+- [x] Define request/response DTOs:
   ```go
   type BatteryStateResponse struct {
       ID               string                 `json:"id"`
@@ -470,13 +470,13 @@ This checklist contains **1400+ lines** with granular TDD workflow steps. The un
   }
   ```
 
-- [ ] Implement mapping functions:
+- [x] Implement mapping functions:
   - `toStateResponse(state *domain.BatteryState) BatteryStateResponse`
 
 ### 3.2 HTTP Handler Tests (TDD - Tests First!)
 
-- [ ] Create `internal/adapters/http/handler_test.go`
-- [ ] Create mock repository:
+- [x] Create `internal/adapters/http/handler_test.go`
+- [x] Create mock repository:
   ```go
   type MockRepository struct {
       SaveStateFunc       func(ctx context.Context, state *domain.BatteryState) error
@@ -485,41 +485,41 @@ This checklist contains **1400+ lines** with granular TDD workflow steps. The un
   }
   ```
 
-- [ ] Write test: `TestGetCurrentState_Success`
+- [x] Write test: `TestGetCurrentState_Success`
   - Setup mock to return test state
   - Create HTTP request: `GET /api/v1/telemetry/{batteryId}/current`
   - Call handler
   - Verify 200 OK
   - Verify JSON response matches expected
 
-- [ ] Write test: `TestGetCurrentState_NotFound`
+- [x] Write test: `TestGetCurrentState_NotFound`
   - Setup mock to return ErrBatteryNotFound
   - Call handler
   - Verify 404 Not Found
   - Verify error response format
 
-- [ ] Write test: `TestGetCurrentState_InvalidBatteryID`
+- [x] Write test: `TestGetCurrentState_InvalidBatteryID`
   - Request with invalid UUID
   - Verify 400 Bad Request
 
-- [ ] Write test: `TestGetHistory_Success`
+- [x] Write test: `TestGetHistory_Success`
   - Setup mock to return array of states
   - Request with query params: `?startTime=...&endTime=...&limit=10`
   - Verify 200 OK
   - Verify pagination info correct
 
-- [ ] Write test: `TestGetHistory_InvalidTimeRange`
+- [x] Write test: `TestGetHistory_InvalidTimeRange`
   - Request with startTime > endTime
   - Verify 400 Bad Request
 
-- [ ] Run tests → Should FAIL (Red phase) ✅
+- [x] Run tests → Should FAIL (Red phase) ✅
 
 **TDD Checkpoint**: ✅ All handler tests written and failing
 
 ### 3.3 HTTP Handler Implementation (Green Phase)
 
-- [ ] Create `internal/adapters/http/handler.go`
-- [ ] Implement `TelemetryHandler` struct:
+- [x] Create `internal/adapters/http/handler.go`
+- [x] Implement `TelemetryHandler` struct:
   ```go
   type TelemetryHandler struct {
       repo ports.TelemetryRepository
@@ -530,14 +530,14 @@ This checklist contains **1400+ lines** with granular TDD workflow steps. The un
   }
   ```
 
-- [ ] Implement `GetCurrentState`:
+- [x] Implement `GetCurrentState`:
   - Parse batteryId from URL
   - Validate UUID format
   - Call repo.GetCurrentState()
   - Handle errors (404 for not found, 500 for other)
   - Return JSON response
 
-- [ ] Implement `GetHistory`:
+- [x] Implement `GetHistory`:
   - Parse batteryId from URL
   - Parse query params (startTime, endTime, limit, offset)
   - Validate time range
@@ -545,17 +545,17 @@ This checklist contains **1400+ lines** with granular TDD workflow steps. The un
   - Build pagination info
   - Return JSON response
 
-- [ ] Implement error handling helper:
+- [x] Implement error handling helper:
   ```go
   func writeError(w http.ResponseWriter, code int, err string, msg string)
   ```
 
-- [ ] Run tests → All pass ✅ (Green phase)
+- [x] Run tests → All pass ✅ (Green phase)
 
 ### 3.4 Routes Setup
 
-- [ ] Create `internal/adapters/http/routes.go`
-- [ ] Setup gorilla/mux router:
+- [x] Create `internal/adapters/http/routes.go`
+- [x] Setup gorilla/mux router:
   ```go
   func SetupRoutes(handler *TelemetryHandler) *mux.Router {
       r := mux.NewRouter()
@@ -572,7 +572,7 @@ This checklist contains **1400+ lines** with granular TDD workflow steps. The un
   }
   ```
 
-- [ ] Implement `HealthCheck` handler
+- [x] Implement `HealthCheck` handler
 
 ### 3.5 Test Coverage
 - [x] Run: `go test -cover ./internal/adapters/http/...`
@@ -599,7 +599,7 @@ This checklist contains **1400+ lines** with granular TDD workflow steps. The un
   - operation_state, custom_attributes
   - timestamp, event_version
 
-- [ ] Add CustomAttributes field if missing:
+- [x] Add CustomAttributes field if missing:
   ```go
   type BatteryStateChanged struct {
       BatteryID        string                 `json:"battery_id"`
@@ -624,7 +624,7 @@ This checklist contains **1400+ lines** with granular TDD workflow steps. The un
 
 - [x] Create `internal/service/state_publisher.go` **(IMPLEMENTED)**
 - [x] Create `internal/service/state_publisher_test.go` with 6 comprehensive tests
-- [ ] Implement `StatePublisher`:
+- [x] Implement `StatePublisher`:
   ```go
   type StatePublisher struct {
       repo      ports.TelemetryRepository
@@ -645,7 +645,7 @@ This checklist contains **1400+ lines** with granular TDD workflow steps. The un
   }
   ```
 
-- [ ] Implement `Start(ctx context.Context)` method:
+- [x] Implement `Start(ctx context.Context)` method:
   - Create 1 Hz ticker
   - Loop: get current state → publish event
   - Context cancellation support
@@ -663,7 +663,7 @@ This checklist contains **1400+ lines** with granular TDD workflow steps. The un
 ### 4.3 Main Application Setup
 
 - [x] Create `cmd/server/main.go`
-- [ ] Implement configuration:
+- [x] Implement configuration:
   ```go
   type Config struct {
       DatabaseURL string
@@ -682,7 +682,7 @@ This checklist contains **1400+ lines** with granular TDD workflow steps. The un
   }
   ```
 
-- [ ] Implement startup sequence:
+- [x] Implement startup sequence:
   1. Load config
   2. Setup logging
   3. Connect to PostgreSQL
@@ -697,7 +697,7 @@ This checklist contains **1400+ lines** with granular TDD workflow steps. The un
   12. Start HTTP server
   13. Graceful shutdown (30s timeout)
 
-- [ ] Add State Publisher startup:
+- [x] Add State Publisher startup:
   ```go
   // After creating repository and publisher
   if publisher != nil {
@@ -770,7 +770,7 @@ This checklist contains **1400+ lines** with granular TDD workflow steps. The un
 ### 5.2 Domain Layer (BatteryAdapter Interface)
 
 - [x] Create `internal/domain/battery_adapter.go`
-- [ ] Define BatteryAdapter interface:
+- [x] Define BatteryAdapter interface:
   ```go
   type BatteryAdapter interface {
       GetState(ctx context.Context) (BatteryState, error)
@@ -808,51 +808,51 @@ This checklist contains **1400+ lines** with granular TDD workflow steps. The un
 ### 5.3 TeslaLike Adapter (TDD - Tests First!)
 
 #### Write Tests FIRST (Red Phase)
-- [ ] Create `internal/adapters/teslalike_test.go`
-- [ ] Write test: `TestTeslaLike_GetState`
+- [x] Create `internal/adapters/teslalike_test.go`
+- [x] Write test: `TestTeslaLike_GetState`
   - Create adapter
   - Call GetState
   - Verify returns BatteryState with initial values
 
-- [ ] Write test: `TestTeslaLike_SendCommand_Charge`
+- [x] Write test: `TestTeslaLike_SendCommand_Charge`
   - Send charge command (15 MW)
   - Wait 5 seconds
   - Verify SoC increased
   - Verify Power is negative (charging)
   - Verify OperationState is CHARGING
 
-- [ ] Write test: `TestTeslaLike_SendCommand_Discharge`
+- [x] Write test: `TestTeslaLike_SendCommand_Discharge`
   - Send discharge command (25 MW)
   - Wait 5 seconds
   - Verify SoC decreased
   - Verify Power is positive (discharging)
 
-- [ ] Write test: `TestTeslaLike_RampRate`
+- [x] Write test: `TestTeslaLike_RampRate`
   - Send command with 50 MW
   - Check power after 1 second
   - Verify power < 50 (ramping up at 5 MW/s)
   - Check after 10 seconds
   - Verify power == 50 (fully ramped)
 
-- [ ] Write test: `TestTeslaLike_TemperatureSimulation`
+- [x] Write test: `TestTeslaLike_TemperatureSimulation`
   - Send charge command
   - Check temperature every second for 10 seconds
   - Verify temperature increases during charging
   - Send idle command
   - Verify temperature decreases
 
-- [ ] Write test: `TestTeslaLike_CustomAttributes`
+- [x] Write test: `TestTeslaLike_CustomAttributes`
   - Call GetCustomAttributes
   - Verify contains "vendor": "Tesla"
   - Verify contains "model": "Megapack"
 
-- [ ] Run tests → Should FAIL (Red phase) ✅
+- [x] Run tests → Should FAIL (Red phase) ✅
 
 **TDD Checkpoint**: ✅ All TeslaLike tests written and failing
 
 #### Implementation (Green Phase)
-- [ ] Create `internal/adapters/teslalike.go`
-- [ ] Implement `TeslaLikeAdapter`:
+- [x] Create `internal/adapters/teslalike.go`
+- [x] Implement `TeslaLikeAdapter`:
   ```go
   type TeslaLikeAdapter struct {
       batteryID       string
@@ -868,21 +868,21 @@ This checklist contains **1400+ lines** with granular TDD workflow steps. The un
   }
   ```
 
-- [ ] Implement constructor:
+- [x] Implement constructor:
   ```go
   func NewTeslaLikeAdapter(batteryID string, capacity float64, maxPower float64, initialSoC float64) *TeslaLikeAdapter
   ```
 
-- [ ] Implement `GetState()`:
+- [x] Implement `GetState()`:
   - Lock mutex (RLock)
   - Return copy of current state
 
-- [ ] Implement `SendCommand()`:
+- [x] Implement `SendCommand()`:
   - Lock mutex
   - Update target power and SoC
   - Start background simulation goroutine if not running
 
-- [ ] Implement background simulation loop:
+- [x] Implement background simulation loop:
   - Ticker: 100ms (10 Hz internal simulation)
   - Each tick:
     - Apply ramp rate (5 MW/s for Tesla)
@@ -891,7 +891,7 @@ This checklist contains **1400+ lines** with granular TDD workflow steps. The un
     - Check stop conditions (target SoC reached, duration exceeded)
     - Update OperationState
 
-- [ ] Implement `GetCustomAttributes()`:
+- [x] Implement `GetCustomAttributes()`:
   ```go
   return map[string]interface{}{
       "vendor": "Tesla",
@@ -902,7 +902,7 @@ This checklist contains **1400+ lines** with granular TDD workflow steps. The un
   }
   ```
 
-- [ ] Run tests → All pass ✅ (Green phase)
+- [x] Run tests → All pass ✅ (Green phase)
 
 ### 5.4 BYDLike Adapter (Similar to TeslaLike) ⚠️ DEFERRED
 
@@ -982,25 +982,25 @@ Check if these events exist in pkg/events, create if missing:
 
 ### 6.2 Command Handler Service (TDD - Tests First!)
 
-- [ ] Create `internal/service/command_handler_test.go`
-- [ ] Write test: `TestHandleChargingCommand_Success`
+- [x] Create `internal/service/command_handler_test.go`
+- [x] Write test: `TestHandleChargingCommand_Success`
   - Mock adapter and publisher
   - Create ChargingCommandIssued event
   - Call HandleChargingCommand
   - Verify adapter.SendCommand called
   - Verify ChargingStarted event published
 
-- [ ] Write test: `TestHandleChargingCommand_InvalidPower`
+- [x] Write test: `TestHandleChargingCommand_InvalidPower`
   - Command with negative power
   - Verify returns error
   - Verify no event published
 
-- [ ] Run tests → Should FAIL (Red phase) ✅
+- [x] Run tests → Should FAIL (Red phase) ✅
 
 **TDD Checkpoint**: ✅ Command handler tests written and failing
 
-- [ ] Create `internal/service/command_handler.go`
-- [ ] Implement `CommandHandler`:
+- [x] Create `internal/service/command_handler.go`
+- [x] Implement `CommandHandler`:
   ```go
   type CommandHandler struct {
       adapter   domain.BatteryAdapter
@@ -1010,21 +1010,21 @@ Check if these events exist in pkg/events, create if missing:
   func NewCommandHandler(adapter domain.BatteryAdapter, publisher events.EventPublisher) *CommandHandler
   ```
 
-- [ ] Implement `HandleChargingCommand`:
+- [x] Implement `HandleChargingCommand`:
   - Validate command fields
   - Create domain.Command
   - Call adapter.SendCommand()
   - Publish ChargingStarted event
   - Handle errors
 
-- [ ] Implement `HandleDischargingCommand` (similar pattern)
+- [x] Implement `HandleDischargingCommand` (similar pattern)
 
-- [ ] Run tests → All pass ✅
+- [x] Run tests → All pass ✅
 
 ### 6.3 Main Application Setup
 
 - [x] Create `cmd/server/main.go`
-- [ ] Implement configuration:
+- [x] Implement configuration:
   ```go
   type Config struct {
       NatsURL     string
@@ -1036,7 +1036,7 @@ Check if these events exist in pkg/events, create if missing:
   }
   ```
 
-- [ ] Implement startup sequence:
+- [x] Implement startup sequence:
   1. Load config
   2. Create adapter (TeslaLike or BYDLike based on config)
   3. Connect to NATS
@@ -1047,7 +1047,7 @@ Check if these events exist in pkg/events, create if missing:
   8. Publish BatteryConnectionEstablished on startup
   9. Wait for signals (graceful shutdown)
 
-- [ ] Implement event subscription:
+- [x] Implement event subscription:
   ```go
   handler := func(subject string, data []byte) error {
       switch subject {
@@ -1333,13 +1333,13 @@ Note: Docker deployment can be deferred to M6 or M7.
 
 ### 8.5 Final Commit and Tag
 
-- [ ] Review all changes:
+- [x] Review all changes:
   ```bash
   git status
   git diff
   ```
 
-- [ ] Commit M5 implementation:
+- [x] Commit M5 implementation:
   ```bash
   git add -A
   git commit -m "feat(M5): Implement Telemetry + Device Interface services
@@ -1375,7 +1375,7 @@ Note: Docker deployment can be deferred to M6 or M7.
   Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
   ```
 
-- [ ] Create tag:
+- [x] Create tag:
   ```bash
   git tag -a m5-complete -m "M5: Telemetry + Device Interface - COMPLETE
 
@@ -1396,7 +1396,7 @@ Note: Docker deployment can be deferred to M6 or M7.
   Ready for M6: Bidding Service"
   ```
 
-- [ ] Push (optional):
+- [x] Push (optional):
   ```bash
   git push origin develop --tags
   ```
