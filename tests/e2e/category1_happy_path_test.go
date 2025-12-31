@@ -142,21 +142,24 @@ func TestDischargingWorkflow(t *testing.T) {
 	AssertBatteryRegistered(t, msg, batteryID, DefaultCapacity, DefaultMaxPower)
 	t.Log("✓ Received battery.registered.v1 event")
 
-	// 6. Create high price to trigger discharging opportunity
+	// 6. Publish battery state (high SoC, IDLE) BEFORE price to ensure bidding engine has current state
+	err = PublishBatteryState(nc, batteryID, VeryHighSoC, 0.0, StateIdle)
+	require.NoError(t, err, "Failed to publish battery state")
+	t.Logf("✓ Published battery state: SoC=%.1f%%, State=%s", VeryHighSoC, StateIdle)
+
+	// Allow time for bidding engine to process battery state
+	time.Sleep(100 * time.Millisecond)
+
+	// 7. Create high price to trigger discharging opportunity
 	err = CreatePrice(MarketDataURL, HighPrice, DefaultInterval)
 	require.NoError(t, err, "Failed to create price")
 	t.Logf("✓ Market price created: $%.2f/MWh", HighPrice)
 
-	// 7. Wait for market.price.updated.v1 event
+	// 8. Wait for market.price.updated.v1 event
 	msg, err = WaitForEvent(sub, "market.price.updated.v1", EventTimeout)
 	require.NoError(t, err, "Failed to receive market.price.updated.v1 event")
 	AssertMarketPriceUpdated(t, msg, HighPrice)
 	t.Log("✓ Received market.price.updated.v1 event")
-
-	// 8. Publish battery state (high SoC, IDLE) to trigger decision
-	err = PublishBatteryState(nc, batteryID, VeryHighSoC, 0.0, StateIdle)
-	require.NoError(t, err, "Failed to publish battery state")
-	t.Logf("✓ Published battery state: SoC=%.1f%%, State=%s", VeryHighSoC, StateIdle)
 
 	// 9. Wait for discharging.opportunity.detected.v1 event
 	msg, err = WaitForEvent(sub, "discharging.opportunity.detected.v1", EventTimeout)
