@@ -407,29 +407,104 @@ This document tracks progress on building a battery optimization system using mi
 
 ---
 
-### ⏳ M6: Bidding Service
-**Goal**: Real-time decision logic
+### ✅ M6: Bidding Service - COMPLETED (2025-12-31)
+**Goal**: Real-time decision logic with arbitrage algorithm
 
-**Tasks:**
-- [ ] Bidding Service
-  - Simple arbitrage algorithm
-    ```
-    if (price > threshold && SoC > 30%):
-        discharge bid
-    if (price < threshold && SoC < 80%):
-        charge bid
-    ```
-  - Subscribe to `BatteryStateChanged`
-  - Subscribe to `MarketPriceUpdated`
-  - Publish `BiddingDecisionMade` event
-- [ ] End-to-end flow test
-  - Price change → Bidding decision → Device command
-- [ ] Verify eventual consistency
+**Documentation**:
+- [M6 Overview](./docs/milestones/M6-OVERVIEW.md) - Big picture and learning objectives
+- [Domain Specification](./docs/milestones/M6-DOMAIN-SPEC.md) - Arbitrage algorithm and business rules
+- [API Specification](./docs/milestones/M6-API-SPEC.md) - Event schemas and flows
+- [Implementation Checklist](./docs/milestones/M6-CHECKLIST.md) - Step-by-step tasks
+- [Service README](./services/bidding/README.md) - Complete service documentation
+
+**Phases**:
+- [x] **Phase 0**: M6 Milestone Documentation (1.5h)
+  - ✅ M6-OVERVIEW.md - Service architecture and learning objectives
+  - ✅ M6-DOMAIN-SPEC.md - Arbitrage algorithm specification (CHARGE_THRESHOLD=$50, DISCHARGE_THRESHOLD=$100)
+  - ✅ M6-API-SPEC.md - Event subscriptions and publications
+  - ✅ M6-CHECKLIST.md - Implementation guide
+
+- [x] **Phase 1**: Domain Layer - Arbitrage Algorithm (2-3h) - **TDD First!**
+  - ✅ Domain errors (errors.go)
+  - ✅ Arbitrage algorithm with comprehensive tests (arbitrage_test.go → arbitrage.go)
+  - ✅ ShouldCharge() and ShouldDischarge() decision logic
+  - ✅ BiddingDecision aggregate with validation
+  - ✅ **96.9% test coverage**
+
+- [x] **Phase 2**: Event Library Extensions (1-2h)
+  - ✅ ChargingOpportunityDetected event
+  - ✅ DischargingOpportunityDetected event
+  - ✅ ChargingCommandIssued event (updated to M6 schema)
+  - ✅ DischargingCommandIssued event (updated to M6 schema)
+  - ✅ All events tested with JSON serialization
+
+- [x] **Phase 3**: In-Memory State Caches (2-3h)
+  - ✅ BatteryStateCache with sync.RWMutex (thread-safe)
+  - ✅ PriceCache with sync.RWMutex (thread-safe)
+  - ✅ Comprehensive concurrent testing (100+ goroutines)
+  - ✅ **100% test coverage**
+  - ✅ No race conditions (verified with -race flag)
+
+- [x] **Phase 4**: Bidding Engine Service (2-3h)
+  - ✅ BiddingEngine with event handlers
+  - ✅ HandleBatteryStateChanged - updates cache, runs arbitrage, publishes events
+  - ✅ HandleMarketPriceUpdated - updates price, re-evaluates all batteries
+  - ✅ HandleBatteryRegistered - initializes battery in cache
+  - ✅ MANUAL and FULL_AUTO automation modes
+  - ✅ **88.2% test coverage**
+
+- [x] **Phase 5**: Main Application Setup (2-3h)
+  - ✅ main.go with dependency injection
+  - ✅ NATS subscriptions (3 event types)
+  - ✅ Configuration (NATS_URL, AUTOMATION_MODE, LOG_LEVEL)
+  - ✅ Dockerfile (multi-stage build)
+  - ✅ docker-compose integration
+  - ✅ Graceful shutdown
+
+- [x] **Phase 6**: Integration Testing (2-3h)
+  - ✅ Infrastructure verification (NATS healthy)
+  - ✅ Event-driven flow tested (battery registration → price updates → opportunities)
+  - ✅ Charging opportunity detection (low price)
+  - ✅ Discharging opportunity detection (high price)
+  - ✅ No opportunity for mid-range prices
+  - ✅ FULL_AUTO mode command issuance verified
+  - ✅ Integration test script created (test_integration.go)
+
+- [x] **Phase 7**: Polish & Documentation (1-2h)
+  - ✅ Code formatting (go fmt, go vet)
+  - ✅ Coverage verification (**94% overall**: domain 96.9%, cache 100%, service 88.2%)
+  - ✅ Service README created (comprehensive documentation)
+  - ✅ PLANNING.md updated
+  - ✅ All phases complete
+
+**Key Learning Objectives**:
+- ✅ Event-Driven Business Logic (first service with real decision-making)
+- ✅ In-Memory State Management (eventual consistency, thread-safe caches)
+- ✅ Arbitrage Algorithm (simple threshold-based trading logic)
+- ✅ Automation Modes (MANUAL vs FULL_AUTO)
+- ✅ Stateless Service Design (no database, rebuilt from events)
 
 **Completion Criteria**:
-- Price changes trigger automatic bidding decisions
-- End-to-end scenario operational
-- 4-5 services cooperating via events
+- ✅ All unit tests pass (domain, cache, service)
+- ✅ Test coverage **94% overall** (exceeds >75% target)
+- ✅ No race conditions detected (go test -race)
+- ✅ Service subscribes to 3 event types
+- ✅ Service publishes 4 event types (opportunity + command)
+- ✅ MANUAL mode: only publishes opportunity events
+- ✅ FULL_AUTO mode: publishes opportunity + command events
+- ✅ Arbitrage algorithm correctly detects opportunities
+- ✅ End-to-end event flow verified with integration test
+- ✅ Comprehensive documentation complete
+
+**Key Achievements**:
+- First service with real business logic (not just CRUD)
+- Stateless, event-driven architecture
+- Thread-safe in-memory caches (sync.RWMutex patterns)
+- Simple but functional arbitrage algorithm
+- Configurable automation modes
+- 4 new event types for bidding operations
+- Integration test demonstrating full event flow
+- Exceeds all test coverage targets
 
 ---
 

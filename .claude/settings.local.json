@@ -40,7 +40,9 @@
       "Bash(chmod:*)",
       "Bash(/Users/minwook/work/energy/battery-optimization/services/telemetry/test_state_publisher.sh)",
       "Bash(timeout:*)",
-      "Bash(./test_state_publisher.sh:*)"
+      "Bash(./test_state_publisher.sh:*)",
+      "Bash(cat:*)",
+      "Bash(xargs:*)"
     ]
   }
 }

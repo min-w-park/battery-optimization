@@ -101,6 +101,21 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  # Bidding Service (M6)
+  bidding:
+    build:
+      context: ./services/bidding
+      dockerfile: Dockerfile
+    container_name: bidding
+    environment:
+      NATS_URL: nats://nats:4222
+      AUTOMATION_MODE: FULL_AUTO
+      LOG_LEVEL: info
+    depends_on:
+      nats:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   asset-data:
   market-data:

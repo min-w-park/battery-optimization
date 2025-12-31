@@ -56,7 +56,7 @@ For detailed setup and development commands, see [CLAUDE.md](./CLAUDE.md) and [Q
 ## 📚 Documentation
 
 **Core Documentation**:
-- **[PLANNING.md](./PLANNING.md)** - Milestone tracking and project status (M0-M4 ✅)
+- **[PLANNING.md](./PLANNING.md)** - Milestone tracking and project status (M0-M6 ✅)
 - **[EVENTS.md](./EVENTS.md)** - Complete event catalog (25 events with schemas and flow diagrams)
 - **[ARCHITECTURE.md](./docs/ARCHITECTURE.md)** - System architecture with mermaid diagrams
 - **[STRUCTURE.md](./docs/STRUCTURE.md)** - Go project structure and development workflow
