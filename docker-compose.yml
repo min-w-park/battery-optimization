@@ -122,6 +122,26 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  # Telemetry Service (M5)
+  telemetry:
+    build:
+      context: .
+      dockerfile: ./services/telemetry/Dockerfile
+    container_name: telemetry
+    ports:
+      - "8082:8082"
+    environment:
+      DATABASE_URL: postgres://telemetry_user:telemetry_pass@telemetry-db:5432/telemetry?sslmode=disable
+      PORT: "8082"
+      LOG_LEVEL: info
+      NATS_URL: nats://nats:4222
+    depends_on:
+      telemetry-db:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   asset-data:
   market-data:
