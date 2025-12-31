@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -15,8 +14,10 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/lib/pq"
+	"go.uber.org/zap"
 
 	"github.com/minwook/battery-optimization/pkg/events"
+	"github.com/minwook/battery-optimization/pkg/logger"
 	httpAdapter "github.com/minwook/battery-optimization/services/asset-management/internal/adapters/http"
 	postgresAdapter "github.com/minwook/battery-optimization/services/asset-management/internal/adapters/postgres"
 )
@@ -33,15 +34,22 @@ func main() {
 	// 1. Load configuration from environment
 	cfg := loadConfig()
 
-	// 2. Setup logging
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
-	log.Printf("Starting Asset Management Service...")
-	log.Printf("Configuration: Port=%s, LogLevel=%s", cfg.Port, cfg.LogLevel)
+	// 2. Setup structured logging
+	log, err := logger.NewFromEnv("asset-management", cfg.LogLevel)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to initialize logger: %v", err))
+	}
+	defer log.Sync()
+
+	log.Info("starting service",
+		zap.String("port", cfg.Port),
+		zap.String("log_level", cfg.LogLevel),
+	)
 
 	// 3. Connect to PostgreSQL
 	db, err := sql.Open("postgres", cfg.DatabaseURL)
 	if err != nil {
-		log.Fatal("Failed to connect to database:", err)
+		log.Fatal("failed to connect to database", zap.Error(err))
 	}
 	defer db.Close()
 
@@ -52,45 +60,48 @@ func main() {
 
 	// Verify connection
 	if err := db.Ping(); err != nil {
-		log.Fatal("Failed to ping database:", err)
+		log.Fatal("failed to ping database", zap.Error(err))
 	}
-	log.Println("Database connection established")
+	log.Info("database connection established")
 
 	// 4. Run migrations using golang-migrate
-	if err := runMigrations(db, cfg.DatabaseURL); err != nil {
-		log.Fatal("Failed to run migrations:", err)
+	if err := runMigrations(db, cfg.DatabaseURL, log); err != nil {
+		log.Fatal("failed to run migrations", zap.Error(err))
 	}
 
 	// 5. Create repository
 	repo := postgresAdapter.NewPostgresRepository(db)
-	log.Println("Repository initialized")
+	log.Info("repository initialized")
 
 	// 6. Connect to NATS (optional - service works without events)
 	var publisher events.EventPublisher
 	if cfg.NatsURL != "" {
 		natsPublisher, err := events.NewNATSPublisher(cfg.NatsURL)
 		if err != nil {
-			log.Printf("WARNING: Failed to connect to NATS at %s: %v", cfg.NatsURL, err)
-			log.Println("Service will continue WITHOUT event publishing")
+			log.Warn("failed to connect to NATS",
+				zap.String("nats_url", cfg.NatsURL),
+				zap.Error(err),
+			)
+			log.Info("service will continue without event publishing")
 		} else {
 			publisher = natsPublisher
 			defer publisher.Close()
-			log.Printf("NATS publisher connected to %s", cfg.NatsURL)
+			log.Info("NATS publisher connected", zap.String("nats_url", cfg.NatsURL))
 		}
 	} else {
-		log.Println("NATS_URL not set - running without event publishing")
+		log.Info("NATS_URL not set - running without event publishing")
 	}
 
 	// 7. Create handlers
 	handler := httpAdapter.NewBatteryHandler(repo, publisher)
-	log.Println("HTTP handler initialized")
+	log.Info("HTTP handler initialized")
 
 	healthHandler := httpAdapter.NewHealthHandler(db, nil) // NATS is optional, pass nil
-	log.Println("Health handler initialized")
+	log.Info("health handler initialized")
 
 	// 8. Setup HTTP router
 	router := httpAdapter.SetupRoutes(handler, healthHandler)
-	log.Println("Routes configured")
+	log.Info("routes configured")
 
 	// 9. Start HTTP server
 	srv := &http.Server{
@@ -103,9 +114,9 @@ func main() {
 
 	// 10. Graceful shutdown on SIGINT/SIGTERM
 	go func() {
-		log.Printf("Starting HTTP server on port %s", cfg.Port)
+		log.Info("starting HTTP server", zap.String("port", cfg.Port))
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatal("Server failed:", err)
+			log.Fatal("server failed", zap.Error(err))
 		}
 	}()
 
@@ -114,17 +125,17 @@ func main() {
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 	<-quit
 
-	log.Println("Shutting down server...")
+	log.Info("shutting down server")
 
 	// Graceful shutdown with timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatal("Server forced to shutdown:", err)
+		log.Fatal("server forced to shutdown", zap.Error(err))
 	}
 
-	log.Println("Server exited gracefully")
+	log.Info("server exited gracefully")
 }
 
 // loadConfig loads configuration from environment variables
@@ -148,7 +159,7 @@ func getEnv(key, defaultValue string) string {
 }
 
 // runMigrations applies database migrations
-func runMigrations(db *sql.DB, databaseURL string) error {
+func runMigrations(db *sql.DB, databaseURL string, log *zap.Logger) error {
 	driver, err := postgres.WithInstance(db, &postgres.Config{})
 	if err != nil {
 		return fmt.Errorf("failed to create migration driver: %w", err)
@@ -167,6 +178,6 @@ func runMigrations(db *sql.DB, databaseURL string) error {
 		return fmt.Errorf("failed to run migrations: %w", err)
 	}
 
-	log.Println("Migrations applied successfully")
+	log.Info("migrations applied successfully")
 	return nil
 }

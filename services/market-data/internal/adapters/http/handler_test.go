@@ -172,7 +172,7 @@ func TestCreateMarketPrice_DuplicateInterval(t *testing.T) {
 
 func TestGetMarketPrice_Success(t *testing.T) {
 	// Given
-	intervalStart := time.Date(2025, 12, 30, 10, 0, 0, 0, time.UTC)
+	intervalStart := time.Date(2026, 1, 15, 10, 0, 0, 0, time.UTC)
 	publishedAt := time.Date(2025, 12, 29, 9, 55, 0, 0, time.UTC)
 
 	testPrice, _ := domain.NewMarketPrice("NSW", 85.50, 8200.0,
@@ -232,7 +232,7 @@ func TestGetMarketPrice_NotFound(t *testing.T) {
 
 func TestListMarketPrices_WithTimeRange(t *testing.T) {
 	// Given
-	intervalStart := time.Date(2025, 12, 30, 10, 0, 0, 0, time.UTC)
+	intervalStart := time.Date(2026, 1, 15, 10, 0, 0, 0, time.UTC)
 	publishedAt := time.Date(2025, 12, 29, 9, 55, 0, 0, time.UTC)
 
 	price1, _ := domain.NewMarketPrice("NSW", 85.50, 8200.0,
@@ -266,7 +266,7 @@ func TestListMarketPrices_WithTimeRange(t *testing.T) {
 
 func TestListMarketPrices_WithFilters(t *testing.T) {
 	// Given
-	intervalStart := time.Date(2025, 12, 30, 10, 0, 0, 0, time.UTC)
+	intervalStart := time.Date(2026, 1, 15, 10, 0, 0, 0, time.UTC)
 	publishedAt := time.Date(2025, 12, 29, 9, 55, 0, 0, time.UTC)
 
 	price1, _ := domain.NewMarketPrice("NSW", 85.50, 8200.0,

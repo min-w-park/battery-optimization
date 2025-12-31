@@ -4,12 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"go.uber.org/zap"
+
 	"github.com/minwook/battery-optimization/pkg/events"
+	"github.com/minwook/battery-optimization/pkg/logger"
 	"github.com/minwook/battery-optimization/services/bidding/internal/cache"
 	"github.com/minwook/battery-optimization/services/bidding/internal/service"
 )
@@ -22,64 +24,72 @@ type Config struct {
 }
 
 func main() {
-	log.Println("Starting Bidding Service...")
-
 	// 1. Load config from environment variables
 	cfg := loadConfig()
-	log.Printf("Configuration: NATS_URL=%s, AUTOMATION_MODE=%s, LOG_LEVEL=%s",
-		cfg.NatsURL, cfg.AutomationMode, cfg.LogLevel)
 
-	// 2. Connect to NATS
+	// 2. Setup structured logging
+	log, err := logger.NewFromEnv("bidding", cfg.LogLevel)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to initialize logger: %v", err))
+	}
+	defer log.Sync()
+
+	log.Info("starting service",
+		zap.String("nats_url", cfg.NatsURL),
+		zap.String("automation_mode", cfg.AutomationMode),
+		zap.String("log_level", cfg.LogLevel),
+	)
+
+	// 3. Connect to NATS
 	var publisher events.EventPublisher
 	var subscriber *events.NATSSubscriber
-	var err error
 
 	if cfg.NatsURL != "" {
 		publisher, err = events.NewNATSPublisher(cfg.NatsURL)
 		if err != nil {
-			log.Printf("WARNING: Failed to connect to NATS for publishing: %v", err)
-			log.Println("Service will continue WITHOUT event publishing")
+			log.Warn("failed to connect to NATS for publishing", zap.Error(err))
+			log.Info("service will continue without event publishing")
 		} else {
 			defer publisher.Close()
-			log.Println("Connected to NATS for publishing")
+			log.Info("connected to NATS for publishing")
 		}
 
 		subscriber, err = events.NewNATSSubscriber(cfg.NatsURL)
 		if err != nil {
-			log.Fatalf("FATAL: Failed to connect to NATS for subscribing: %v", err)
+			log.Fatal("failed to connect to NATS for subscribing", zap.Error(err))
 		}
 		defer subscriber.Close()
-		log.Println("Connected to NATS for subscribing")
+		log.Info("connected to NATS for subscribing")
 	} else {
-		log.Println("WARNING: NATS_URL not set, running without event bus")
+		log.Warn("NATS_URL not set - running without event bus")
 	}
 
-	// 3. Create caches
+	// 4. Create caches
 	batteryCache := cache.NewBatteryStateCache()
 	priceCache := cache.NewPriceCache()
-	log.Println("Initialized in-memory caches")
+	log.Info("initialized in-memory caches")
 
-	// 4. Create bidding engine
+	// 5. Create bidding engine
 	engine := service.NewBiddingEngine(batteryCache, priceCache, publisher, cfg.AutomationMode)
-	log.Printf("Created bidding engine with automation mode: %s", cfg.AutomationMode)
+	log.Info("created bidding engine", zap.String("automation_mode", cfg.AutomationMode))
 
-	// 5. Setup event subscriptions
+	// 6. Setup event subscriptions
 	if subscriber != nil {
 		ctx := context.Background()
-		setupSubscriptions(ctx, subscriber, engine)
+		setupSubscriptions(ctx, subscriber, engine, log)
 	}
 
-	// 6. Start service (no HTTP server in M6, event-driven only)
-	log.Println("Bidding Service is running (event-driven mode)")
-	log.Println("Press Ctrl+C to shutdown...")
+	// 7. Start service (no HTTP server in M6, event-driven only)
+	log.Info("bidding service is running in event-driven mode")
+	log.Info("press Ctrl+C to shutdown")
 
-	// 7. Graceful shutdown
+	// 8. Graceful shutdown
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 	<-sigChan
 
-	log.Println("Shutting down Bidding Service...")
-	log.Println("Bidding Service stopped")
+	log.Info("shutting down bidding service")
+	log.Info("bidding service stopped")
 }
 
 // loadConfig loads configuration from environment variables
@@ -100,7 +110,7 @@ func getEnv(key, defaultValue string) string {
 }
 
 // setupSubscriptions configures NATS event subscriptions
-func setupSubscriptions(ctx context.Context, subscriber *events.NATSSubscriber, engine *service.BiddingEngine) {
+func setupSubscriptions(ctx context.Context, subscriber *events.NATSSubscriber, engine *service.BiddingEngine, log *zap.Logger) {
 	// Subscribe to battery.state.changed.v1
 	if err := subscriber.Subscribe(ctx, "battery.state.changed.v1", func(subject string, data []byte) error {
 		var event events.BatteryStateChanged
@@ -109,9 +119,9 @@ func setupSubscriptions(ctx context.Context, subscriber *events.NATSSubscriber, 
 		}
 		return engine.HandleBatteryStateChanged(event)
 	}); err != nil {
-		log.Fatalf("Failed to subscribe to battery.state.changed.v1: %v", err)
+		log.Fatal("failed to subscribe to battery.state.changed.v1", zap.Error(err))
 	}
-	log.Println("Subscribed to: battery.state.changed.v1")
+	log.Info("subscribed to battery.state.changed.v1")
 
 	// Subscribe to market.price.updated.v1
 	if err := subscriber.Subscribe(ctx, "market.price.updated.v1", func(subject string, data []byte) error {
@@ -121,9 +131,9 @@ func setupSubscriptions(ctx context.Context, subscriber *events.NATSSubscriber, 
 		}
 		return engine.HandleMarketPriceUpdated(event)
 	}); err != nil {
-		log.Fatalf("Failed to subscribe to market.price.updated.v1: %v", err)
+		log.Fatal("failed to subscribe to market.price.updated.v1", zap.Error(err))
 	}
-	log.Println("Subscribed to: market.price.updated.v1")
+	log.Info("subscribed to market.price.updated.v1")
 
 	// Subscribe to battery.registered.v1
 	if err := subscriber.Subscribe(ctx, "battery.registered.v1", func(subject string, data []byte) error {
@@ -133,9 +143,9 @@ func setupSubscriptions(ctx context.Context, subscriber *events.NATSSubscriber, 
 		}
 		return engine.HandleBatteryRegistered(event)
 	}); err != nil {
-		log.Fatalf("Failed to subscribe to battery.registered.v1: %v", err)
+		log.Fatal("failed to subscribe to battery.registered.v1", zap.Error(err))
 	}
-	log.Println("Subscribed to: battery.registered.v1")
+	log.Info("subscribed to battery.registered.v1")
 
-	log.Println("All event subscriptions configured successfully")
+	log.Info("all event subscriptions configured successfully")
 }

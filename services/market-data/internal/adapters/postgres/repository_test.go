@@ -42,7 +42,7 @@ func TestCreate_Success(t *testing.T) {
 	repo := NewPostgresRepository(db)
 	ctx := context.Background()
 
-	intervalStart := time.Date(2025, 12, 30, 10, 0, 0, 0, time.UTC)
+	intervalStart := time.Date(2026, 1, 15, 10, 0, 0, 0, time.UTC)
 	publishedAt := time.Now().Add(-5 * time.Minute)
 
 	price, err := domain.NewMarketPrice(
@@ -73,7 +73,7 @@ func TestCreate_DuplicateInterval(t *testing.T) {
 	repo := NewPostgresRepository(db)
 	ctx := context.Background()
 
-	intervalStart := time.Date(2025, 12, 30, 10, 0, 0, 0, time.UTC)
+	intervalStart := time.Date(2026, 1, 15, 10, 0, 0, 0, time.UTC)
 	publishedAt := time.Now().Add(-5 * time.Minute)
 
 	// Create first price
@@ -110,7 +110,7 @@ func TestFindByID_Success(t *testing.T) {
 	repo := NewPostgresRepository(db)
 	ctx := context.Background()
 
-	intervalStart := time.Date(2025, 12, 30, 10, 0, 0, 0, time.UTC)
+	intervalStart := time.Date(2026, 1, 15, 10, 0, 0, 0, time.UTC)
 	publishedAt := time.Date(2025, 12, 29, 9, 55, 0, 0, time.UTC)
 
 	expectedPrice, err := domain.NewMarketPrice(
@@ -167,7 +167,7 @@ func TestListByTimeRange_NoFilters(t *testing.T) {
 	// Insert 10 prices across different regions and times
 	prices := []*domain.MarketPrice{}
 	for i := 0; i < 10; i++ {
-		intervalStart := time.Date(2025, 12, 30, 10+i/2, (i%2)*5, 0, 0, time.UTC)
+		intervalStart := time.Date(2026, 1, 15, 10+i/2, (i%2)*5, 0, 0, time.UTC)
 		publishedAt := time.Now().Add(-5 * time.Minute)
 		region := []string{"NSW", "VIC", "QLD", "SA", "TAS"}[i%5]
 
@@ -185,8 +185,8 @@ func TestListByTimeRange_NoFilters(t *testing.T) {
 
 	// When
 	filter := ports.TimeRangeFilter{
-		From: time.Date(2025, 12, 30, 0, 0, 0, 0, time.UTC),
-		To:   time.Date(2025, 12, 31, 0, 0, 0, 0, time.UTC),
+		From: time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC),
+		To:   time.Date(2026, 1, 31, 0, 0, 0, 0, time.UTC),
 	}
 	results, err := repo.ListByTimeRange(ctx, filter)
 
@@ -213,7 +213,7 @@ func TestListByTimeRange_WithRegionFilter(t *testing.T) {
 	// Insert prices for NSW, VIC, SA
 	regions := []string{"NSW", "VIC", "SA"}
 	for i, region := range regions {
-		intervalStart := time.Date(2025, 12, 30, 10, i*5, 0, 0, time.UTC)
+		intervalStart := time.Date(2026, 1, 15, 10, i*5, 0, 0, time.UTC)
 		publishedAt := time.Now().Add(-5 * time.Minute)
 
 		price, err := domain.NewMarketPrice(
@@ -228,8 +228,8 @@ func TestListByTimeRange_WithRegionFilter(t *testing.T) {
 
 	// When
 	filter := ports.TimeRangeFilter{
-		From:   time.Date(2025, 12, 30, 0, 0, 0, 0, time.UTC),
-		To:     time.Date(2025, 12, 31, 0, 0, 0, 0, time.UTC),
+		From:   time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC),
+		To:     time.Date(2026, 1, 31, 0, 0, 0, 0, time.UTC),
 		Region: "NSW",
 	}
 	results, err := repo.ListByTimeRange(ctx, filter)
@@ -250,7 +250,7 @@ func TestListByTimeRange_WithIntervalTypeFilter(t *testing.T) {
 	ctx := context.Background()
 
 	// Insert 5MIN and 30MIN prices
-	intervalStart5Min := time.Date(2025, 12, 30, 10, 0, 0, 0, time.UTC)
+	intervalStart5Min := time.Date(2026, 1, 15, 10, 0, 0, 0, time.UTC)
 	publishedAt := time.Now().Add(-5 * time.Minute)
 
 	price5Min, err := domain.NewMarketPrice(
@@ -261,7 +261,7 @@ func TestListByTimeRange_WithIntervalTypeFilter(t *testing.T) {
 	err = repo.Create(ctx, price5Min)
 	require.NoError(t, err)
 
-	intervalStart30Min := time.Date(2025, 12, 30, 10, 30, 0, 0, time.UTC)
+	intervalStart30Min := time.Date(2026, 1, 15, 10, 30, 0, 0, time.UTC)
 	price30Min, err := domain.NewMarketPrice(
 		"NSW", 90.00, 8300.0,
 		domain.Interval30Min, intervalStart30Min, publishedAt,
@@ -272,8 +272,8 @@ func TestListByTimeRange_WithIntervalTypeFilter(t *testing.T) {
 
 	// When
 	filter := ports.TimeRangeFilter{
-		From:         time.Date(2025, 12, 30, 0, 0, 0, 0, time.UTC),
-		To:           time.Date(2025, 12, 31, 0, 0, 0, 0, time.UTC),
+		From:         time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC),
+		To:           time.Date(2026, 1, 31, 0, 0, 0, 0, time.UTC),
 		IntervalType: domain.Interval5Min,
 	}
 	results, err := repo.ListByTimeRange(ctx, filter)
@@ -295,7 +295,7 @@ func TestListByTimeRange_WithPagination(t *testing.T) {
 
 	// Insert 25 prices
 	for i := 0; i < 25; i++ {
-		intervalStart := time.Date(2025, 12, 30, 10, i*5, 0, 0, time.UTC)
+		intervalStart := time.Date(2026, 1, 15, 10, i*5, 0, 0, time.UTC)
 		publishedAt := time.Now().Add(-5 * time.Minute)
 
 		price, err := domain.NewMarketPrice(
@@ -310,8 +310,8 @@ func TestListByTimeRange_WithPagination(t *testing.T) {
 
 	// When: First page (limit=10, offset=0)
 	filter1 := ports.TimeRangeFilter{
-		From:   time.Date(2025, 12, 30, 0, 0, 0, 0, time.UTC),
-		To:     time.Date(2025, 12, 31, 0, 0, 0, 0, time.UTC),
+		From:   time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC),
+		To:     time.Date(2026, 1, 31, 0, 0, 0, 0, time.UTC),
 		Limit:  10,
 		Offset: 0,
 	}
@@ -323,8 +323,8 @@ func TestListByTimeRange_WithPagination(t *testing.T) {
 
 	// When: Second page (limit=10, offset=10)
 	filter2 := ports.TimeRangeFilter{
-		From:   time.Date(2025, 12, 30, 0, 0, 0, 0, time.UTC),
-		To:     time.Date(2025, 12, 31, 0, 0, 0, 0, time.UTC),
+		From:   time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC),
+		To:     time.Date(2026, 1, 31, 0, 0, 0, 0, time.UTC),
 		Limit:  10,
 		Offset: 10,
 	}
@@ -349,11 +349,11 @@ func TestListByTimeRange_OrderedByTime(t *testing.T) {
 
 	// Insert prices in random order
 	times := []time.Time{
-		time.Date(2025, 12, 30, 10, 15, 0, 0, time.UTC),
-		time.Date(2025, 12, 30, 10, 5, 0, 0, time.UTC),
-		time.Date(2025, 12, 30, 10, 25, 0, 0, time.UTC),
-		time.Date(2025, 12, 30, 10, 0, 0, 0, time.UTC),
-		time.Date(2025, 12, 30, 10, 10, 0, 0, time.UTC),
+		time.Date(2026, 1, 15, 10, 15, 0, 0, time.UTC),
+		time.Date(2026, 1, 15, 10, 5, 0, 0, time.UTC),
+		time.Date(2026, 1, 15, 10, 25, 0, 0, time.UTC),
+		time.Date(2026, 1, 15, 10, 0, 0, 0, time.UTC),
+		time.Date(2026, 1, 15, 10, 10, 0, 0, time.UTC),
 	}
 
 	publishedAt := time.Now().Add(-5 * time.Minute)
@@ -371,8 +371,8 @@ func TestListByTimeRange_OrderedByTime(t *testing.T) {
 
 	// When
 	filter := ports.TimeRangeFilter{
-		From: time.Date(2025, 12, 30, 0, 0, 0, 0, time.UTC),
-		To:   time.Date(2025, 12, 31, 0, 0, 0, 0, time.UTC),
+		From: time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC),
+		To:   time.Date(2026, 1, 31, 0, 0, 0, 0, time.UTC),
 	}
 	results, err := repo.ListByTimeRange(ctx, filter)
 
@@ -381,11 +381,11 @@ func TestListByTimeRange_OrderedByTime(t *testing.T) {
 	assert.Len(t, results, 5)
 
 	// Verify DESC order (newest first) - compare Unix timestamps to avoid timezone issues
-	assert.Equal(t, time.Date(2025, 12, 30, 10, 25, 0, 0, time.UTC).Unix(), results[0].IntervalStart.Unix())
-	assert.Equal(t, time.Date(2025, 12, 30, 10, 15, 0, 0, time.UTC).Unix(), results[1].IntervalStart.Unix())
-	assert.Equal(t, time.Date(2025, 12, 30, 10, 10, 0, 0, time.UTC).Unix(), results[2].IntervalStart.Unix())
-	assert.Equal(t, time.Date(2025, 12, 30, 10, 5, 0, 0, time.UTC).Unix(), results[3].IntervalStart.Unix())
-	assert.Equal(t, time.Date(2025, 12, 30, 10, 0, 0, 0, time.UTC).Unix(), results[4].IntervalStart.Unix())
+	assert.Equal(t, time.Date(2026, 1, 15, 10, 25, 0, 0, time.UTC).Unix(), results[0].IntervalStart.Unix())
+	assert.Equal(t, time.Date(2026, 1, 15, 10, 15, 0, 0, time.UTC).Unix(), results[1].IntervalStart.Unix())
+	assert.Equal(t, time.Date(2026, 1, 15, 10, 10, 0, 0, time.UTC).Unix(), results[2].IntervalStart.Unix())
+	assert.Equal(t, time.Date(2026, 1, 15, 10, 5, 0, 0, time.UTC).Unix(), results[3].IntervalStart.Unix())
+	assert.Equal(t, time.Date(2026, 1, 15, 10, 0, 0, 0, time.UTC).Unix(), results[4].IntervalStart.Unix())
 }
 
 func TestListByTimeRange_MultipleFilters(t *testing.T) {
@@ -412,7 +412,7 @@ func TestListByTimeRange_MultipleFilters(t *testing.T) {
 	publishedAt := time.Now().Add(-5 * time.Minute)
 
 	for i, tc := range testCases {
-		intervalStart := time.Date(2025, 12, 30, 10, tc.minute, 0, 0, time.UTC)
+		intervalStart := time.Date(2026, 1, 15, 10, tc.minute, 0, 0, time.UTC)
 		price, err := domain.NewMarketPrice(
 			tc.region, 80.0+float64(i), 8000.0,
 			tc.intervalType, intervalStart, publishedAt,
@@ -425,8 +425,8 @@ func TestListByTimeRange_MultipleFilters(t *testing.T) {
 
 	// When: Filter by region=NSW AND interval_type=5MIN
 	filter := ports.TimeRangeFilter{
-		From:         time.Date(2025, 12, 30, 0, 0, 0, 0, time.UTC),
-		To:           time.Date(2025, 12, 31, 0, 0, 0, 0, time.UTC),
+		From:         time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC),
+		To:           time.Date(2026, 1, 31, 0, 0, 0, 0, time.UTC),
 		Region:       "NSW",
 		IntervalType: domain.Interval5Min,
 	}

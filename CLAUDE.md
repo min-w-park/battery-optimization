@@ -175,6 +175,35 @@ See [docs/operations/HEALTH-CHECKS.md](docs/operations/HEALTH-CHECKS.md) for det
 
 See [docs/operations/CI-CD.md](docs/operations/CI-CD.md) for detailed workflow documentation.
 
+### Structured Logging
+
+All services use **structured logging** with [uber-go/zap](https://github.com/uber-go/zap) for production-ready observability:
+
+**Features**:
+- JSON-formatted logs for machine parsing
+- Contextual fields for debugging (battery_id, nats_url, port, etc.)
+- Proper log levels (Info, Warn, Error, Fatal)
+- ISO8601 timestamps
+- Service name field on every log message
+
+**Configuration**:
+```bash
+# Production mode (JSON logs)
+LOG_LEVEL=info ./bin/asset-management
+
+# Development mode (console logs)
+LOG_LEVEL=debug ./bin/asset-management
+```
+
+**Example output**:
+```json
+{"level":"info","timestamp":"2025-12-31T15:16:47.380+0900","caller":"server/main.go:44","msg":"starting service","service":"asset-management","port":"8080","log_level":"info"}
+{"level":"info","timestamp":"2025-12-31T15:16:47.395+0900","caller":"server/main.go:65","msg":"database connection established","service":"asset-management"}
+{"level":"warn","timestamp":"2025-12-31T15:16:47.411+0900","caller":"server/main.go:82","msg":"failed to connect to NATS","service":"asset-management","nats_url":"nats://localhost:4222","error":"connection refused"}
+```
+
+See [docs/operations/LOGGING.md](docs/operations/LOGGING.md) for complete logging documentation, best practices, and log aggregation setup.
+
 ## Development Approach
 
 ### Test-Driven Development (TDD)

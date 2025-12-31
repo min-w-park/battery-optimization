@@ -24,7 +24,7 @@ func TestNewMarketPrice_ValidInput(t *testing.T) {
 			price:         85.50,
 			demand:        8200.0,
 			intervalType:  Interval5Min,
-			intervalStart: time.Date(2025, 12, 30, 10, 0, 0, 0, time.UTC),
+			intervalStart: time.Date(2026, 1, 15, 10, 0, 0, 0, time.UTC),
 			publishedAt:   time.Now().Add(-5 * time.Minute),
 		},
 		{
@@ -33,7 +33,7 @@ func TestNewMarketPrice_ValidInput(t *testing.T) {
 			price:         120.00,
 			demand:        1500.0,
 			intervalType:  Interval30Min,
-			intervalStart: time.Date(2025, 12, 30, 10, 30, 0, 0, time.UTC),
+			intervalStart: time.Date(2026, 1, 15, 10, 30, 0, 0, time.UTC),
 			publishedAt:   time.Now().Add(-10 * time.Minute),
 		},
 		{
@@ -42,7 +42,7 @@ func TestNewMarketPrice_ValidInput(t *testing.T) {
 			price:         95.75,
 			demand:        7500.0,
 			intervalType:  Interval5Min,
-			intervalStart: time.Date(2025, 12, 30, 10, 5, 0, 0, time.UTC),
+			intervalStart: time.Date(2026, 1, 15, 10, 5, 0, 0, time.UTC),
 			publishedAt:   time.Now().Add(-3 * time.Minute),
 		},
 	}
@@ -237,61 +237,61 @@ func TestNewMarketPrice_IntervalAlignment(t *testing.T) {
 		{
 			name:          "5MIN valid - on 5-minute boundary (10:00)",
 			intervalType:  Interval5Min,
-			intervalStart: time.Date(2025, 12, 30, 10, 0, 0, 0, time.UTC),
+			intervalStart: time.Date(2026, 1, 15, 10, 0, 0, 0, time.UTC),
 			shouldFail:    false,
 		},
 		{
 			name:          "5MIN valid - on 5-minute boundary (10:05)",
 			intervalType:  Interval5Min,
-			intervalStart: time.Date(2025, 12, 30, 10, 5, 0, 0, time.UTC),
+			intervalStart: time.Date(2026, 1, 15, 10, 5, 0, 0, time.UTC),
 			shouldFail:    false,
 		},
 		{
 			name:          "5MIN valid - on 5-minute boundary (10:15)",
 			intervalType:  Interval5Min,
-			intervalStart: time.Date(2025, 12, 30, 10, 15, 0, 0, time.UTC),
+			intervalStart: time.Date(2026, 1, 15, 10, 15, 0, 0, time.UTC),
 			shouldFail:    false,
 		},
 		{
 			name:          "5MIN invalid - not on boundary (10:03)",
 			intervalType:  Interval5Min,
-			intervalStart: time.Date(2025, 12, 30, 10, 3, 0, 0, time.UTC),
+			intervalStart: time.Date(2026, 1, 15, 10, 3, 0, 0, time.UTC),
 			shouldFail:    true,
 		},
 		{
 			name:          "5MIN invalid - not on boundary (10:01)",
 			intervalType:  Interval5Min,
-			intervalStart: time.Date(2025, 12, 30, 10, 1, 0, 0, time.UTC),
+			intervalStart: time.Date(2026, 1, 15, 10, 1, 0, 0, time.UTC),
 			shouldFail:    true,
 		},
 		{
 			name:          "30MIN valid - on 30-minute boundary (10:00)",
 			intervalType:  Interval30Min,
-			intervalStart: time.Date(2025, 12, 30, 10, 0, 0, 0, time.UTC),
+			intervalStart: time.Date(2026, 1, 15, 10, 0, 0, 0, time.UTC),
 			shouldFail:    false,
 		},
 		{
 			name:          "30MIN valid - on 30-minute boundary (10:30)",
 			intervalType:  Interval30Min,
-			intervalStart: time.Date(2025, 12, 30, 10, 30, 0, 0, time.UTC),
+			intervalStart: time.Date(2026, 1, 15, 10, 30, 0, 0, time.UTC),
 			shouldFail:    false,
 		},
 		{
 			name:          "30MIN invalid - not on boundary (10:15)",
 			intervalType:  Interval30Min,
-			intervalStart: time.Date(2025, 12, 30, 10, 15, 0, 0, time.UTC),
+			intervalStart: time.Date(2026, 1, 15, 10, 15, 0, 0, time.UTC),
 			shouldFail:    true,
 		},
 		{
 			name:          "30MIN invalid - not on boundary (10:45)",
 			intervalType:  Interval30Min,
-			intervalStart: time.Date(2025, 12, 30, 10, 45, 0, 0, time.UTC),
+			intervalStart: time.Date(2026, 1, 15, 10, 45, 0, 0, time.UTC),
 			shouldFail:    true,
 		},
 		{
 			name:          "5MIN invalid - has seconds (10:00:30)",
 			intervalType:  Interval5Min,
-			intervalStart: time.Date(2025, 12, 30, 10, 0, 30, 0, time.UTC),
+			intervalStart: time.Date(2026, 1, 15, 10, 0, 30, 0, time.UTC),
 			shouldFail:    true,
 		},
 	}
@@ -328,29 +328,29 @@ func TestValidateIntervalAlignment(t *testing.T) {
 		expected     bool
 	}{
 		// 5-minute valid cases
-		{"5MIN - 10:00", time.Date(2025, 12, 30, 10, 0, 0, 0, time.UTC), Interval5Min, true},
-		{"5MIN - 10:05", time.Date(2025, 12, 30, 10, 5, 0, 0, time.UTC), Interval5Min, true},
-		{"5MIN - 10:10", time.Date(2025, 12, 30, 10, 10, 0, 0, time.UTC), Interval5Min, true},
-		{"5MIN - 10:15", time.Date(2025, 12, 30, 10, 15, 0, 0, time.UTC), Interval5Min, true},
-		{"5MIN - 10:20", time.Date(2025, 12, 30, 10, 20, 0, 0, time.UTC), Interval5Min, true},
-		{"5MIN - 10:55", time.Date(2025, 12, 30, 10, 55, 0, 0, time.UTC), Interval5Min, true},
+		{"5MIN - 10:00", time.Date(2026, 1, 15, 10, 0, 0, 0, time.UTC), Interval5Min, true},
+		{"5MIN - 10:05", time.Date(2026, 1, 15, 10, 5, 0, 0, time.UTC), Interval5Min, true},
+		{"5MIN - 10:10", time.Date(2026, 1, 15, 10, 10, 0, 0, time.UTC), Interval5Min, true},
+		{"5MIN - 10:15", time.Date(2026, 1, 15, 10, 15, 0, 0, time.UTC), Interval5Min, true},
+		{"5MIN - 10:20", time.Date(2026, 1, 15, 10, 20, 0, 0, time.UTC), Interval5Min, true},
+		{"5MIN - 10:55", time.Date(2026, 1, 15, 10, 55, 0, 0, time.UTC), Interval5Min, true},
 
 		// 5-minute invalid cases
-		{"5MIN - 10:01", time.Date(2025, 12, 30, 10, 1, 0, 0, time.UTC), Interval5Min, false},
-		{"5MIN - 10:03", time.Date(2025, 12, 30, 10, 3, 0, 0, time.UTC), Interval5Min, false},
-		{"5MIN - 10:07", time.Date(2025, 12, 30, 10, 7, 0, 0, time.UTC), Interval5Min, false},
-		{"5MIN - 10:00:01", time.Date(2025, 12, 30, 10, 0, 1, 0, time.UTC), Interval5Min, false},
+		{"5MIN - 10:01", time.Date(2026, 1, 15, 10, 1, 0, 0, time.UTC), Interval5Min, false},
+		{"5MIN - 10:03", time.Date(2026, 1, 15, 10, 3, 0, 0, time.UTC), Interval5Min, false},
+		{"5MIN - 10:07", time.Date(2026, 1, 15, 10, 7, 0, 0, time.UTC), Interval5Min, false},
+		{"5MIN - 10:00:01", time.Date(2026, 1, 15, 10, 0, 1, 0, time.UTC), Interval5Min, false},
 
 		// 30-minute valid cases
-		{"30MIN - 10:00", time.Date(2025, 12, 30, 10, 0, 0, 0, time.UTC), Interval30Min, true},
-		{"30MIN - 10:30", time.Date(2025, 12, 30, 10, 30, 0, 0, time.UTC), Interval30Min, true},
-		{"30MIN - 11:00", time.Date(2025, 12, 30, 11, 0, 0, 0, time.UTC), Interval30Min, true},
+		{"30MIN - 10:00", time.Date(2026, 1, 15, 10, 0, 0, 0, time.UTC), Interval30Min, true},
+		{"30MIN - 10:30", time.Date(2026, 1, 15, 10, 30, 0, 0, time.UTC), Interval30Min, true},
+		{"30MIN - 11:00", time.Date(2026, 1, 15, 11, 0, 0, 0, time.UTC), Interval30Min, true},
 
 		// 30-minute invalid cases
-		{"30MIN - 10:15", time.Date(2025, 12, 30, 10, 15, 0, 0, time.UTC), Interval30Min, false},
-		{"30MIN - 10:45", time.Date(2025, 12, 30, 10, 45, 0, 0, time.UTC), Interval30Min, false},
-		{"30MIN - 10:05", time.Date(2025, 12, 30, 10, 5, 0, 0, time.UTC), Interval30Min, false},
-		{"30MIN - 10:30:01", time.Date(2025, 12, 30, 10, 30, 1, 0, time.UTC), Interval30Min, false},
+		{"30MIN - 10:15", time.Date(2026, 1, 15, 10, 15, 0, 0, time.UTC), Interval30Min, false},
+		{"30MIN - 10:45", time.Date(2026, 1, 15, 10, 45, 0, 0, time.UTC), Interval30Min, false},
+		{"30MIN - 10:05", time.Date(2026, 1, 15, 10, 5, 0, 0, time.UTC), Interval30Min, false},
+		{"30MIN - 10:30:01", time.Date(2026, 1, 15, 10, 30, 1, 0, time.UTC), Interval30Min, false},
 	}
 
 	for _, tt := range tests {
@@ -416,7 +416,7 @@ func TestIsValidIntervalType(t *testing.T) {
 
 func TestMarketPrice_ZeroPrice(t *testing.T) {
 	// Given: zero price (valid during oversupply) with properly aligned timestamp
-	intervalStart := time.Date(2025, 12, 30, 10, 0, 0, 0, time.UTC)
+	intervalStart := time.Date(2026, 1, 15, 10, 0, 0, 0, time.UTC)
 	publishedAt := time.Now().Add(-5 * time.Minute)
 
 	// When
@@ -436,7 +436,7 @@ func TestMarketPrice_AllNEMRegions(t *testing.T) {
 
 	for _, region := range regions {
 		t.Run(region, func(t *testing.T) {
-			intervalStart := time.Date(2025, 12, 30, 10, 0, 0, 0, time.UTC)
+			intervalStart := time.Date(2026, 1, 15, 10, 0, 0, 0, time.UTC)
 			publishedAt := time.Now().Add(-5 * time.Minute)
 
 			price, err := NewMarketPrice(

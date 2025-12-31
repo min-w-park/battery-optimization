@@ -3,13 +3,15 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"go.uber.org/zap"
+
 	"github.com/minwook/battery-optimization/pkg/events"
+	"github.com/minwook/battery-optimization/pkg/logger"
 	"github.com/minwook/battery-optimization/services/device-interface/internal/adapters"
 	"github.com/minwook/battery-optimization/services/device-interface/internal/domain"
 	"github.com/minwook/battery-optimization/services/device-interface/internal/service"
@@ -29,23 +31,31 @@ func main() {
 	// 1. Load configuration from environment
 	cfg := loadConfig()
 
-	// 2. Setup logging
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
-	log.Printf("Starting Device Interface Service...")
-	log.Printf("Configuration: BatteryID=%s, AdapterType=%s, Capacity=%.2f MWh, MaxPower=%.2f MW",
-		cfg.BatteryID, cfg.AdapterType, cfg.Capacity, cfg.MaxPower)
+	// 2. Setup structured logging
+	log, err := logger.NewFromEnv("device-interface", cfg.LogLevel)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to initialize logger: %v", err))
+	}
+	defer log.Sync()
+
+	log.Info("starting service",
+		zap.String("battery_id", cfg.BatteryID),
+		zap.String("adapter_type", cfg.AdapterType),
+		zap.Float64("capacity_mwh", cfg.Capacity),
+		zap.Float64("max_power_mw", cfg.MaxPower),
+	)
 
 	// 3. Create battery adapter based on type
 	var adapter domain.BatteryAdapter
 	switch cfg.AdapterType {
 	case "TeslaLike":
 		adapter = adapters.NewTeslaLike(cfg.BatteryID, cfg.Capacity, cfg.MaxPower)
-		log.Printf("Created TeslaLike adapter for battery %s", cfg.BatteryID)
+		log.Info("created TeslaLike adapter", zap.String("battery_id", cfg.BatteryID))
 	case "BYDLike":
 		// TODO: Implement BYDLike adapter in Phase 5 extension
 		log.Fatal("BYDLike adapter not yet implemented - use TeslaLike for now")
 	default:
-		log.Fatalf("Unknown adapter type: %s (use TeslaLike or BYDLike)", cfg.AdapterType)
+		log.Fatal("unknown adapter type", zap.String("adapter_type", cfg.AdapterType))
 	}
 
 	// Ensure adapter cleanup on exit
@@ -60,15 +70,18 @@ func main() {
 	if cfg.NatsURL != "" {
 		natsPublisher, err := events.NewNATSPublisher(cfg.NatsURL)
 		if err != nil {
-			log.Printf("WARNING: Failed to connect to NATS at %s: %v", cfg.NatsURL, err)
-			log.Println("Service will continue WITHOUT event publishing")
+			log.Warn("failed to connect to NATS for publishing",
+				zap.String("nats_url", cfg.NatsURL),
+				zap.Error(err),
+			)
+			log.Info("service will continue without event publishing")
 		} else {
 			publisher = natsPublisher
 			defer publisher.Close()
-			log.Printf("NATS publisher connected to %s", cfg.NatsURL)
+			log.Info("NATS publisher connected", zap.String("nats_url", cfg.NatsURL))
 		}
 	} else {
-		log.Println("NATS_URL not set - running without event publishing")
+		log.Info("NATS_URL not set - running without event publishing")
 	}
 
 	// 5. Publish BatteryConnectionEstablished event
@@ -90,9 +103,11 @@ func main() {
 
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		if err := publisher.Publish(ctx, "battery.connection.established.v1", connectionEvent); err != nil {
-			log.Printf("WARNING: Failed to publish BatteryConnectionEstablished: %v", err)
+			log.Warn("failed to publish BatteryConnectionEstablished", zap.Error(err))
 		} else {
-			log.Printf("Published BatteryConnectionEstablished event for battery %s", cfg.BatteryID)
+			log.Info("published BatteryConnectionEstablished event",
+				zap.String("battery_id", cfg.BatteryID),
+			)
 		}
 		cancel()
 	}
@@ -101,7 +116,7 @@ func main() {
 	var commandHandler *service.CommandHandler
 	if publisher != nil {
 		commandHandler = service.NewCommandHandler(adapter, publisher)
-		log.Println("Command handler initialized")
+		log.Info("command handler initialized")
 	}
 
 	// 7. Connect to NATS for event subscription
@@ -109,46 +124,49 @@ func main() {
 	if cfg.NatsURL != "" && commandHandler != nil {
 		natsSubscriber, err := events.NewNATSSubscriber(cfg.NatsURL)
 		if err != nil {
-			log.Printf("WARNING: Failed to connect to NATS for subscription: %v", err)
-			log.Println("Service will continue WITHOUT command handling")
+			log.Warn("failed to connect to NATS for subscription",
+				zap.String("nats_url", cfg.NatsURL),
+				zap.Error(err),
+			)
+			log.Info("service will continue without command handling")
 		} else {
 			subscriber = natsSubscriber
 			defer subscriber.Close()
-			log.Printf("NATS subscriber connected to %s", cfg.NatsURL)
+			log.Info("NATS subscriber connected", zap.String("nats_url", cfg.NatsURL))
 
 			// Subscribe to command events
 			ctx := context.Background()
 
 			// Subscribe to charging commands
 			if err := subscriber.Subscribe(ctx, "charging.command.issued.v1", commandHandler.OnEvent); err != nil {
-				log.Fatalf("Failed to subscribe to charging commands: %v", err)
+				log.Fatal("failed to subscribe to charging commands", zap.Error(err))
 			}
-			log.Println("Subscribed to: charging.command.issued.v1")
+			log.Info("subscribed to charging.command.issued.v1")
 
 			// Subscribe to discharging commands
 			if err := subscriber.Subscribe(ctx, "discharging.command.issued.v1", commandHandler.OnEvent); err != nil {
-				log.Fatalf("Failed to subscribe to discharging commands: %v", err)
+				log.Fatal("failed to subscribe to discharging commands", zap.Error(err))
 			}
-			log.Println("Subscribed to: discharging.command.issued.v1")
+			log.Info("subscribed to discharging.command.issued.v1")
 
 			// Subscribe to conflict resolutions
 			if err := subscriber.Subscribe(ctx, "conflict.resolved.v1", commandHandler.OnEvent); err != nil {
-				log.Fatalf("Failed to subscribe to conflict resolutions: %v", err)
+				log.Fatal("failed to subscribe to conflict resolutions", zap.Error(err))
 			}
-			log.Println("Subscribed to: conflict.resolved.v1")
+			log.Info("subscribed to conflict.resolved.v1")
 
-			log.Println("Event subscriptions active - ready to process commands")
+			log.Info("event subscriptions active - ready to process commands")
 		}
 	}
 
 	// 8. Wait for shutdown signal
-	log.Println("Device Interface Service is running - Press Ctrl+C to stop")
+	log.Info("device interface service is running - press Ctrl+C to stop")
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
-	log.Println("Shutting down Device Interface Service...")
-	log.Println("Service exited")
+	log.Info("shutting down device interface service")
+	log.Info("service exited")
 }
 
 func loadConfig() Config {
