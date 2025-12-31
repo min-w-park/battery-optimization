@@ -128,6 +128,51 @@ go vet ./...
 golangci-lint run --timeout=5m
 ```
 
+### Health Check Endpoints
+
+All HTTP-based services expose health check endpoints for monitoring:
+
+```bash
+# Liveness check - is the service running?
+curl http://localhost:8080/health/live
+
+# Readiness check - is the service ready to handle traffic?
+curl http://localhost:8080/health/ready
+```
+
+**Service Ports**:
+- Asset Management: 8080
+- Market Data: 8080
+- Telemetry: 8082
+
+**Response Examples**:
+```json
+// Liveness
+{"status": "ok", "service": "asset-management"}
+
+// Readiness (healthy)
+{
+  "status": "ready",
+  "service": "asset-management",
+  "checks": {
+    "database": "healthy",
+    "nats": "not configured"
+  }
+}
+
+// Readiness (unhealthy)
+{
+  "status": "unavailable",
+  "service": "asset-management",
+  "checks": {
+    "database": "unhealthy: connection timeout",
+    "nats": "not checked"
+  }
+}
+```
+
+See [docs/operations/HEALTH-CHECKS.md](docs/operations/HEALTH-CHECKS.md) for detailed documentation on health check endpoints, Kubernetes integration, and troubleshooting.
+
 See [docs/operations/CI-CD.md](docs/operations/CI-CD.md) for detailed workflow documentation.
 
 ## Development Approach

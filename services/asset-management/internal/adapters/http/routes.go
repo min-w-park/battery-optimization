@@ -9,8 +9,12 @@ import (
 )
 
 // SetupRoutes configures all HTTP routes and middleware
-func SetupRoutes(handler *BatteryHandler) *mux.Router {
+func SetupRoutes(handler *BatteryHandler, healthHandler *HealthHandler) *mux.Router {
 	router := mux.NewRouter()
+
+	// Health check endpoints (no /api/v1 prefix)
+	router.HandleFunc("/health/live", healthHandler.LivenessCheck).Methods(http.MethodGet)
+	router.HandleFunc("/health/ready", healthHandler.ReadinessCheck).Methods(http.MethodGet)
 
 	// API v1 routes
 	api := router.PathPrefix("/api/v1").Subrouter()

@@ -82,12 +82,15 @@ func main() {
 		log.Println("NATS_URL not set - running without event publishing")
 	}
 
-	// 7. Create handler
+	// 7. Create handlers
 	handler := httpAdapter.NewTelemetryHandler(repo)
 	log.Println("HTTP handler initialized")
 
+	healthHandler := httpAdapter.NewHealthHandler(db, nil)
+	log.Println("Health handler initialized")
+
 	// 8. Setup HTTP router
-	router := httpAdapter.SetupRoutes(handler)
+	router := httpAdapter.SetupRoutes(handler, healthHandler)
 	log.Println("Routes configured")
 
 	// 9. Start State Publisher (1 Hz event publishing)
