@@ -4,12 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
+	"go.uber.org/zap"
 
 	"github.com/minwook/battery-optimization/pkg/events"
 	"github.com/minwook/battery-optimization/services/market-data/internal/domain"
@@ -20,13 +20,15 @@ import (
 type MarketPriceHandler struct {
 	repo      ports.MarketPriceRepository
 	publisher events.EventPublisher // Optional - service works without events
+	log       *zap.Logger
 }
 
 // NewMarketPriceHandler creates a new market price handler
-func NewMarketPriceHandler(repo ports.MarketPriceRepository, publisher events.EventPublisher) *MarketPriceHandler {
+func NewMarketPriceHandler(repo ports.MarketPriceRepository, publisher events.EventPublisher, log *zap.Logger) *MarketPriceHandler {
 	return &MarketPriceHandler{
 		repo:      repo,
 		publisher: publisher,
+		log:       log,
 	}
 }
 
@@ -35,7 +37,7 @@ func (h *MarketPriceHandler) CreateMarketPrice(w http.ResponseWriter, r *http.Re
 	var req CreateMarketPriceRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		respondWithError(w, http.StatusBadRequest, "INVALID_JSON",
+		h.respondWithError(w, http.StatusBadRequest, "INVALID_JSON",
 			"Invalid JSON format", nil)
 		return
 	}
@@ -50,23 +52,23 @@ func (h *MarketPriceHandler) CreateMarketPrice(w http.ResponseWriter, r *http.Re
 			errors.Is(err, domain.ErrIntervalInPast) ||
 			errors.Is(err, domain.ErrPublishedInFuture) ||
 			errors.Is(err, domain.ErrIntervalAlignment) {
-			respondWithError(w, http.StatusBadRequest, "VALIDATION_ERROR",
+			h.respondWithError(w, http.StatusBadRequest, "VALIDATION_ERROR",
 				err.Error(), nil)
 			return
 		}
-		respondWithError(w, http.StatusBadRequest, "INVALID_INPUT",
+		h.respondWithError(w, http.StatusBadRequest, "INVALID_INPUT",
 			err.Error(), nil)
 		return
 	}
 
 	if err := h.repo.Create(r.Context(), price); err != nil {
 		if errors.Is(err, domain.ErrDuplicateInterval) {
-			respondWithError(w, http.StatusConflict, "DUPLICATE_INTERVAL",
+			h.respondWithError(w, http.StatusConflict, "DUPLICATE_INTERVAL",
 				err.Error(), nil)
 			return
 		}
-		log.Printf("Failed to create market price: %v", err)
-		respondWithError(w, http.StatusInternalServerError, "INTERNAL_ERROR",
+		h.log.Error("failed to create market price", zap.Error(err))
+		h.respondWithError(w, http.StatusInternalServerError, "INTERNAL_ERROR",
 			"Failed to save market price", nil)
 		return
 	}
@@ -91,14 +93,20 @@ func (h *MarketPriceHandler) CreateMarketPrice(w http.ResponseWriter, r *http.Re
 
 		if err := h.publisher.Publish(ctx, "market.price.updated.v1", event); err != nil {
 			// Log warning but don't fail the HTTP request
-			log.Printf("WARNING: Failed to publish MarketPriceUpdated event for price %s: %v", price.ID, err)
+			h.log.Warn("failed to publish market.price.updated.v1 event",
+				zap.String("price_id", price.ID),
+				zap.Error(err),
+			)
 		} else {
-			log.Printf("Published MarketPriceUpdated event for price %s (Region: %s, Price: $%.2f)",
-				price.ID, price.Region, price.Price)
+			h.log.Info("published market.price.updated.v1 event",
+				zap.String("price_id", price.ID),
+				zap.String("region", price.Region),
+				zap.Float64("price", price.Price),
+			)
 		}
 	}
 
-	respondWithJSON(w, http.StatusCreated, FromDomain(price))
+	h.respondWithJSON(w, http.StatusCreated, FromDomain(price))
 }
 
 // GetMarketPrice handles GET /prices/:id
@@ -109,17 +117,20 @@ func (h *MarketPriceHandler) GetMarketPrice(w http.ResponseWriter, r *http.Reque
 	price, err := h.repo.FindByID(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, domain.ErrNotFound) {
-			respondWithError(w, http.StatusNotFound, "NOT_FOUND",
+			h.respondWithError(w, http.StatusNotFound, "NOT_FOUND",
 				"Market price not found", nil)
 			return
 		}
-		log.Printf("Failed to find market price: %v", err)
-		respondWithError(w, http.StatusInternalServerError, "INTERNAL_ERROR",
+		h.log.Error("failed to find market price",
+			zap.String("price_id", id),
+			zap.Error(err),
+		)
+		h.respondWithError(w, http.StatusInternalServerError, "INTERNAL_ERROR",
 			"Failed to retrieve market price", nil)
 		return
 	}
 
-	respondWithJSON(w, http.StatusOK, FromDomain(price))
+	h.respondWithJSON(w, http.StatusOK, FromDomain(price))
 }
 
 // ListMarketPrices handles GET /prices with time-range query
@@ -129,21 +140,21 @@ func (h *MarketPriceHandler) ListMarketPrices(w http.ResponseWriter, r *http.Req
 	toStr := r.URL.Query().Get("to")
 
 	if fromStr == "" || toStr == "" {
-		respondWithError(w, http.StatusBadRequest, "MISSING_PARAMETERS",
+		h.respondWithError(w, http.StatusBadRequest, "MISSING_PARAMETERS",
 			"Required parameters: from (ISO 8601), to (ISO 8601)", nil)
 		return
 	}
 
 	from, err := time.Parse(time.RFC3339, fromStr)
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "INVALID_DATE_FORMAT",
+		h.respondWithError(w, http.StatusBadRequest, "INVALID_DATE_FORMAT",
 			"Parameter 'from' must be ISO 8601 format", nil)
 		return
 	}
 
 	to, err := time.Parse(time.RFC3339, toStr)
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "INVALID_DATE_FORMAT",
+		h.respondWithError(w, http.StatusBadRequest, "INVALID_DATE_FORMAT",
 			"Parameter 'to' must be ISO 8601 format", nil)
 		return
 	}
@@ -172,8 +183,8 @@ func (h *MarketPriceHandler) ListMarketPrices(w http.ResponseWriter, r *http.Req
 
 	prices, err := h.repo.ListByTimeRange(r.Context(), filter)
 	if err != nil {
-		log.Printf("Failed to list market prices: %v", err)
-		respondWithError(w, http.StatusInternalServerError, "INTERNAL_ERROR",
+		h.log.Error("failed to list market prices", zap.Error(err))
+		h.respondWithError(w, http.StatusInternalServerError, "INTERNAL_ERROR",
 			"Failed to list market prices", nil)
 		return
 	}
@@ -183,16 +194,17 @@ func (h *MarketPriceHandler) ListMarketPrices(w http.ResponseWriter, r *http.Req
 		responses[i] = FromDomain(p)
 	}
 
-	respondWithJSON(w, http.StatusOK, ListMarketPricesResponse{
+	h.respondWithJSON(w, http.StatusOK, ListMarketPricesResponse{
 		Prices: responses,
 		Total:  len(responses),
 	})
 }
 
 // respondWithJSON sends a JSON response
-func respondWithJSON(w http.ResponseWriter, statusCode int, payload interface{}) {
+func (h *MarketPriceHandler) respondWithJSON(w http.ResponseWriter, statusCode int, payload interface{}) {
 	response, err := json.Marshal(payload)
 	if err != nil {
+		h.log.Error("failed to encode JSON response", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(`{"code":"INTERNAL_ERROR","message":"Failed to encode response"}`))
 		return
@@ -204,8 +216,8 @@ func respondWithJSON(w http.ResponseWriter, statusCode int, payload interface{})
 }
 
 // respondWithError sends an error response
-func respondWithError(w http.ResponseWriter, statusCode int, code, message string, details map[string]string) {
-	respondWithJSON(w, statusCode, ErrorResponse{
+func (h *MarketPriceHandler) respondWithError(w http.ResponseWriter, statusCode int, code, message string, details map[string]string) {
+	h.respondWithJSON(w, statusCode, ErrorResponse{
 		Code:    code,
 		Message: message,
 		Details: details,

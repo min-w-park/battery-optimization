@@ -93,14 +93,14 @@ func main() {
 	}
 
 	// 7. Create handlers
-	handler := httpAdapter.NewBatteryHandler(repo, publisher)
+	handler := httpAdapter.NewBatteryHandler(repo, publisher, log)
 	log.Info("HTTP handler initialized")
 
 	healthHandler := httpAdapter.NewHealthHandler(db, nil) // NATS is optional, pass nil
 	log.Info("health handler initialized")
 
 	// 8. Setup HTTP router
-	router := httpAdapter.SetupRoutes(handler, healthHandler)
+	router := httpAdapter.SetupRoutes(handler, healthHandler, log)
 	log.Info("routes configured")
 
 	// 9. Start HTTP server

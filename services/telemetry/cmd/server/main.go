@@ -111,12 +111,8 @@ func main() {
 		batteryIDs := []string{"battery-123"}
 
 		for _, batteryID := range batteryIDs {
-			statePublisher := service.NewStatePublisher(repo, publisher, batteryID)
+			statePublisher := service.NewStatePublisher(repo, publisher, batteryID, log)
 			go statePublisher.Start(context.Background())
-			log.Info("state publisher started",
-				zap.String("battery_id", batteryID),
-				zap.String("frequency", "1 Hz"),
-			)
 		}
 	}
 

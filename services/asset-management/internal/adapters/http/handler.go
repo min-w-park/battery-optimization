@@ -4,12 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
+	"go.uber.org/zap"
 
 	"github.com/minwook/battery-optimization/pkg/events"
 	"github.com/minwook/battery-optimization/services/asset-management/internal/domain"
@@ -20,13 +20,15 @@ import (
 type BatteryHandler struct {
 	repo      ports.BatteryRepository
 	publisher events.EventPublisher // Optional - service works without events
+	log       *zap.Logger
 }
 
 // NewBatteryHandler creates a new battery handler
-func NewBatteryHandler(repo ports.BatteryRepository, publisher events.EventPublisher) *BatteryHandler {
+func NewBatteryHandler(repo ports.BatteryRepository, publisher events.EventPublisher, log *zap.Logger) *BatteryHandler {
 	return &BatteryHandler{
 		repo:      repo,
 		publisher: publisher,
+		log:       log,
 	}
 }
 
@@ -36,7 +38,7 @@ func (h *BatteryHandler) CreateBattery(w http.ResponseWriter, r *http.Request) {
 
 	// Parse request body
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		respondWithError(w, http.StatusBadRequest, "INVALID_JSON", "Invalid JSON format", nil)
+		h.respondWithError(w, http.StatusBadRequest, "INVALID_JSON", "Invalid JSON format", nil)
 		return
 	}
 
@@ -54,17 +56,17 @@ func (h *BatteryHandler) CreateBattery(w http.ResponseWriter, r *http.Request) {
 			errors.Is(err, domain.ErrInvalidWarrantyEOL) ||
 			errors.Is(err, domain.ErrInvalidMaxCycles) ||
 			errors.Is(err, domain.ErrInvalidTemperatureRange) {
-			respondWithError(w, http.StatusBadRequest, "VALIDATION_ERROR", err.Error(), nil)
+			h.respondWithError(w, http.StatusBadRequest, "VALIDATION_ERROR", err.Error(), nil)
 			return
 		}
-		respondWithError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Failed to create battery", nil)
+		h.respondWithError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Failed to create battery", nil)
 		return
 	}
 
 	// Persist battery
 	if err := h.repo.Create(r.Context(), battery); err != nil {
-		log.Printf("Failed to create battery: %v", err)
-		respondWithError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Failed to save battery", nil)
+		h.log.Error("failed to create battery", zap.Error(err))
+		h.respondWithError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Failed to save battery", nil)
 		return
 	}
 
@@ -99,14 +101,19 @@ func (h *BatteryHandler) CreateBattery(w http.ResponseWriter, r *http.Request) {
 
 		if err := h.publisher.Publish(ctx, "battery.registered.v1", event); err != nil {
 			// Log warning but don't fail the HTTP request
-			log.Printf("WARNING: Failed to publish BatteryRegistered event for battery %s: %v", battery.ID, err)
+			h.log.Warn("failed to publish battery.registered.v1 event",
+				zap.String("battery_id", battery.ID),
+				zap.Error(err),
+			)
 		} else {
-			log.Printf("Published BatteryRegistered event for battery %s", battery.ID)
+			h.log.Info("published battery.registered.v1 event",
+				zap.String("battery_id", battery.ID),
+			)
 		}
 	}
 
 	// Return success response
-	respondWithJSON(w, http.StatusCreated, FromDomain(battery))
+	h.respondWithJSON(w, http.StatusCreated, FromDomain(battery))
 }
 
 // GetBattery handles GET /api/v1/batteries/{id}
@@ -119,16 +126,19 @@ func (h *BatteryHandler) GetBattery(w http.ResponseWriter, r *http.Request) {
 	battery, err := h.repo.FindByID(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, domain.ErrNotFound) {
-			respondWithError(w, http.StatusNotFound, "NOT_FOUND", "Battery not found", nil)
+			h.respondWithError(w, http.StatusNotFound, "NOT_FOUND", "Battery not found", nil)
 			return
 		}
-		log.Printf("Failed to find battery: %v", err)
-		respondWithError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Failed to retrieve battery", nil)
+		h.log.Error("failed to find battery",
+			zap.String("battery_id", id),
+			zap.Error(err),
+		)
+		h.respondWithError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Failed to retrieve battery", nil)
 		return
 	}
 
 	// Return battery
-	respondWithJSON(w, http.StatusOK, FromDomain(battery))
+	h.respondWithJSON(w, http.StatusOK, FromDomain(battery))
 }
 
 // ListBatteries handles GET /api/v1/batteries
@@ -158,8 +168,8 @@ func (h *BatteryHandler) ListBatteries(w http.ResponseWriter, r *http.Request) {
 	// Get batteries from repository
 	batteries, err := h.repo.List(r.Context(), filter)
 	if err != nil {
-		log.Printf("Failed to list batteries: %v", err)
-		respondWithError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Failed to list batteries", nil)
+		h.log.Error("failed to list batteries", zap.Error(err))
+		h.respondWithError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Failed to list batteries", nil)
 		return
 	}
 
@@ -174,21 +184,21 @@ func (h *BatteryHandler) ListBatteries(w http.ResponseWriter, r *http.Request) {
 		Batteries: batteryResponses,
 		Total:     len(batteryResponses),
 	}
-	respondWithJSON(w, http.StatusOK, response)
+	h.respondWithJSON(w, http.StatusOK, response)
 }
 
 // respondWithJSON sends a JSON response
-func respondWithJSON(w http.ResponseWriter, statusCode int, payload interface{}) {
+func (h *BatteryHandler) respondWithJSON(w http.ResponseWriter, statusCode int, payload interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 	if err := json.NewEncoder(w).Encode(payload); err != nil {
-		log.Printf("Failed to encode response: %v", err)
+		h.log.Error("failed to encode JSON response", zap.Error(err))
 	}
 }
 
 // respondWithError sends an error response
-func respondWithError(w http.ResponseWriter, statusCode int, code, message string, details map[string]string) {
-	respondWithJSON(w, statusCode, ErrorResponse{
+func (h *BatteryHandler) respondWithError(w http.ResponseWriter, statusCode int, code, message string, details map[string]string) {
+	h.respondWithJSON(w, statusCode, ErrorResponse{
 		Code:    code,
 		Message: message,
 		Details: details,

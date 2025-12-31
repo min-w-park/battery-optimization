@@ -3,8 +3,9 @@ package service
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
+
+	"go.uber.org/zap"
 
 	"github.com/minwook/battery-optimization/pkg/events"
 	"github.com/minwook/battery-optimization/services/telemetry/internal/ports"
@@ -15,6 +16,7 @@ type StatePublisher struct {
 	repo      ports.TelemetryRepository
 	publisher events.EventPublisher
 	batteryID string
+	log       *zap.Logger
 }
 
 // NewStatePublisher creates a new StatePublisher instance
@@ -22,11 +24,13 @@ func NewStatePublisher(
 	repo ports.TelemetryRepository,
 	publisher events.EventPublisher,
 	batteryID string,
+	log *zap.Logger,
 ) *StatePublisher {
 	return &StatePublisher{
 		repo:      repo,
 		publisher: publisher,
 		batteryID: batteryID,
+		log:       log,
 	}
 }
 
@@ -36,17 +40,25 @@ func (s *StatePublisher) Start(ctx context.Context) {
 	ticker := time.NewTicker(1 * time.Second) // 1 Hz
 	defer ticker.Stop()
 
-	log.Printf("StatePublisher started for battery %s (1 Hz)", s.batteryID)
+	s.log.Info("state publisher started",
+		zap.String("battery_id", s.batteryID),
+		zap.String("frequency", "1 Hz"),
+	)
 
 	for {
 		select {
 		case <-ctx.Done():
-			log.Printf("StatePublisher stopped for battery %s", s.batteryID)
+			s.log.Info("state publisher stopped",
+				zap.String("battery_id", s.batteryID),
+			)
 			return
 		case <-ticker.C:
 			if err := s.publishOnce(ctx); err != nil {
 				// Best-effort: log error but don't crash
-				log.Printf("WARNING: Failed to publish state for battery %s: %v", s.batteryID, err)
+				s.log.Warn("failed to publish battery state",
+					zap.String("battery_id", s.batteryID),
+					zap.Error(err),
+				)
 			}
 		}
 	}
