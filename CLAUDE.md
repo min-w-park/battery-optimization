@@ -95,6 +95,41 @@ curl http://localhost:8222/varz
 curl http://localhost:8222/connz
 ```
 
+### Continuous Integration
+
+The project uses GitHub Actions for automated testing and building:
+
+**Automated Tests** (`.github/workflows/test.yml`):
+- Runs on every push to `develop` and `main` branches
+- Runs on all pull requests
+- Executes all unit tests with race detection (`-race`)
+- Generates coverage reports
+- Runs `go vet` for static analysis
+- Runs `golangci-lint` for code quality
+
+**Docker Image Builds** (`.github/workflows/build.yml`):
+- Builds all 5 service Docker images
+- Tags images with branch name, PR number, or semantic version
+- Pushes images to GitHub Container Registry (ghcr.io)
+- Uses Docker layer caching for faster builds
+
+**Running Tests Locally** (matches CI environment):
+```bash
+# Run all tests with coverage
+go test -v -race -coverprofile=coverage.out ./...
+
+# View coverage report
+go tool cover -func=coverage.out
+
+# Run static analysis
+go vet ./...
+
+# Run linter (requires golangci-lint installed)
+golangci-lint run --timeout=5m
+```
+
+See [docs/operations/CI-CD.md](docs/operations/CI-CD.md) for detailed workflow documentation.
+
 ## Development Approach
 
 ### Test-Driven Development (TDD)

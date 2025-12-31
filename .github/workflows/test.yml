@@ -1,0 +1,127 @@
+name: Test
+
+on:
+  push:
+    branches: [ develop, main ]
+  pull_request:
+    branches: [ develop, main ]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    services:
+      # PostgreSQL for Asset Management
+      asset-db:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: asset_user
+          POSTGRES_PASSWORD: asset_pass
+          POSTGRES_DB: asset_management
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      # PostgreSQL for Market Data
+      market-db:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: market_user
+          POSTGRES_PASSWORD: market_pass
+          POSTGRES_DB: market_data
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      # PostgreSQL for Telemetry
+      telemetry-db:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: telemetry_user
+          POSTGRES_PASSWORD: telemetry_pass
+          POSTGRES_DB: telemetry
+        ports:
+          - 5434:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      # NATS event bus
+      nats:
+        image: nats:2.10-alpine
+        ports:
+          - 4222:4222
+          - 8222:8222
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: true
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Run go vet
+        run: go vet ./...
+
+      - name: Run unit tests
+        env:
+          # Asset Management DB
+          ASSET_DB_URL: postgres://asset_user:asset_pass@localhost:5432/asset_management?sslmode=disable
+          # Market Data DB
+          MARKET_DB_URL: postgres://market_user:market_pass@localhost:5433/market_data?sslmode=disable
+          # Telemetry DB
+          TELEMETRY_DB_URL: postgres://telemetry_user:telemetry_pass@localhost:5434/telemetry?sslmode=disable
+          # NATS
+          NATS_URL: nats://localhost:4222
+        run: |
+          go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.out
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Generate coverage report
+        run: go tool cover -func=coverage.out
+
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: true
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v4
+        with:
+          version: latest
+          args: --timeout=5m
