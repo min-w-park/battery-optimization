@@ -68,24 +68,39 @@ type BatteryRegistered struct {
 }
 ```
 
-### `pkg/eventbus`
-- NATS connection management
-- Publisher interface
-- Subscriber interface
-- Event serialization/deserialization
+### `pkg/events`
+- NATS publisher and subscriber implementations
+- Event type definitions (BatteryRegistered, MarketPriceUpdated, etc.)
+- EventPublisher and EventSubscriber interfaces
+- JSON serialization/deserialization
 
 Example:
 ```go
-type EventBus interface {
-    Publish(topic string, event interface{}) error
-    Subscribe(topic string, handler func([]byte)) error
+type EventPublisher interface {
+    Publish(ctx context.Context, subject string, data interface{}) error
+    Close() error
+}
+
+type EventSubscriber interface {
+    Subscribe(ctx context.Context, subject string, handler func(subject string, data []byte) error) error
+    Close() error
 }
 ```
 
-### `pkg/database`
-- PostgreSQL connection pooling
-- Migration helpers
-- Common database utilities
+### `pkg/logger`
+- Structured logging with uber-go/zap
+- Production (JSON) and development (console) modes
+- Service name field injection
+- ISO8601 timestamp formatting
+
+Example:
+```go
+log, err := logger.NewFromEnv("service-name", "info")
+log.Info("starting service",
+    zap.String("port", "8080"),
+    zap.String("log_level", "info"),
+)
+```
 
 ## Design Principles
 
