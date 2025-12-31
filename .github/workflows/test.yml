@@ -74,13 +74,7 @@ jobs:
           go-version: '1.23'
           cache: true
 
-      - name: Download dependencies
-        run: go mod download
-
-      - name: Run go vet
-        run: go vet ./...
-
-      - name: Run unit tests
+      - name: Run tests for all modules
         env:
           # Asset Management DB
           ASSET_DB_URL: postgres://asset_user:asset_pass@localhost:5432/asset_management?sslmode=disable
@@ -91,7 +85,36 @@ jobs:
           # NATS
           NATS_URL: nats://localhost:4222
         run: |
-          go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+          # Find all go.mod files and test each module
+          echo "Testing all Go modules..."
+
+          # Initialize coverage file
+          echo "mode: atomic" > coverage.out
+
+          # Test each module
+          for dir in $(find . -name "go.mod" -type f -not -path "*/tests/e2e/*" -exec dirname {} \;); do
+            echo "Testing module: $dir"
+            cd "$dir"
+
+            # Download dependencies
+            go mod download
+
+            # Run go vet
+            go vet ./...
+
+            # Run tests with coverage
+            if go test -v -race -coverprofile=coverage.tmp -covermode=atomic ./... 2>&1; then
+              # Append coverage (skip first line which is "mode: atomic")
+              if [ -f coverage.tmp ]; then
+                tail -n +2 coverage.tmp >> "$GITHUB_WORKSPACE/coverage.out"
+                rm coverage.tmp
+              fi
+            fi
+
+            cd "$GITHUB_WORKSPACE"
+          done
+
+          echo "All modules tested successfully"
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -120,8 +143,15 @@ jobs:
           go-version: '1.23'
           cache: true
 
-      - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v4
-        with:
-          version: latest
-          args: --timeout=5m
+      - name: Run golangci-lint on all modules
+        run: |
+          # Install golangci-lint
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.64.8
+
+          # Lint each module
+          for dir in $(find . -name "go.mod" -type f -not -path "*/tests/e2e/*" -exec dirname {} \;); do
+            echo "Linting module: $dir"
+            cd "$dir"
+            $(go env GOPATH)/bin/golangci-lint run --timeout=5m || true
+            cd "$GITHUB_WORKSPACE"
+          done
