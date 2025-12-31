@@ -37,7 +37,7 @@ func AssertMarketPriceUpdated(t *testing.T, msg *nats.Msg, expectedPrice float64
 	err := json.Unmarshal(msg.Data, &event)
 	require.NoError(t, err, "Failed to unmarshal event")
 
-	assert.Equal(t, expectedPrice, event["value"])
+	assert.Equal(t, expectedPrice, event["price"])
 	assert.NotEmpty(t, event["timestamp"])
 	assert.Equal(t, "v1", event["event_version"])
 }

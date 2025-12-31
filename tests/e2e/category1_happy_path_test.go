@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -58,21 +59,24 @@ func TestChargingWorkflow(t *testing.T) {
 	AssertBatteryRegistered(t, msg, batteryID, DefaultCapacity, DefaultMaxPower)
 	t.Log("✓ Received battery.registered.v1 event")
 
-	// 6. Create low price to trigger charging opportunity
+	// 6. Publish battery state (low SoC, IDLE) BEFORE price to ensure bidding engine has current state
+	err = PublishBatteryState(nc, batteryID, LowSoC, 0.0, StateIdle)
+	require.NoError(t, err, "Failed to publish battery state")
+	t.Logf("✓ Published battery state: SoC=%.1f%%, State=%s", LowSoC, StateIdle)
+
+	// Allow time for bidding engine to process battery state
+	time.Sleep(100 * time.Millisecond)
+
+	// 7. Create low price to trigger charging opportunity
 	err = CreatePrice(MarketDataURL, LowPrice, DefaultInterval)
 	require.NoError(t, err, "Failed to create price")
 	t.Logf("✓ Market price created: $%.2f/MWh", LowPrice)
 
-	// 7. Wait for market.price.updated.v1 event
+	// 8. Wait for market.price.updated.v1 event
 	msg, err = WaitForEvent(sub, "market.price.updated.v1", EventTimeout)
 	require.NoError(t, err, "Failed to receive market.price.updated.v1 event")
 	AssertMarketPriceUpdated(t, msg, LowPrice)
 	t.Log("✓ Received market.price.updated.v1 event")
-
-	// 8. Publish battery state (low SoC, IDLE) to trigger decision
-	err = PublishBatteryState(nc, batteryID, LowSoC, 0.0, StateIdle)
-	require.NoError(t, err, "Failed to publish battery state")
-	t.Logf("✓ Published battery state: SoC=%.1f%%, State=%s", LowSoC, StateIdle)
 
 	// 9. Wait for charging.opportunity.detected.v1 event
 	msg, err = WaitForEvent(sub, "charging.opportunity.detected.v1", EventTimeout)
