@@ -17,17 +17,17 @@ import (
 func CreateBattery(baseURL string, capacity, maxPower, rampRate, efficiency float64) (string, error) {
 	payload := map[string]interface{}{
 		"capacity":     capacity,
-		"maxPower":     maxPower,
-		"rampRate":     rampRate,
+		"max_power":    maxPower,
+		"ramp_rate":    rampRate,
 		"efficiency":   efficiency,
 		"location":     "SA",
 		"manufacturer": "Tesla",
 		"constraints": map[string]interface{}{
-			"warrantyEol":    8000.0,
-			"maxCycles":      10000,
-			"tempMin":        -20.0,
-			"tempMax":        60.0,
-			"gridCompliance": []string{"FCAS", "ENERGY"},
+			"warranty_eol":          0.8,
+			"max_cycles":            10000,
+			"operating_temp_min":    -20.0,
+			"operating_temp_max":    60.0,
+			"grid_compliance_level": "FCAS",
 		},
 	}
 
@@ -62,10 +62,16 @@ func CreateBattery(baseURL string, capacity, maxPower, rampRate, efficiency floa
 
 // CreatePrice creates a new market price via Market Data API
 func CreatePrice(baseURL string, price float64, interval int) error {
+	intervalStart := time.Now().Add(24 * time.Hour).Truncate(5 * time.Minute)
+	publishedAt := time.Now().Add(-5 * time.Minute)
+
 	payload := map[string]interface{}{
-		"timestamp": time.Now().Format(time.RFC3339),
-		"value":     price,
-		"interval":  interval,
+		"region":         "NSW",
+		"price":          price,
+		"demand":         8200.0,
+		"interval_type":  "5MIN_PREDISPATCH",
+		"interval_start": intervalStart.Format(time.RFC3339),
+		"published_at":   publishedAt.Format(time.RFC3339),
 	}
 
 	body, err := json.Marshal(payload)
