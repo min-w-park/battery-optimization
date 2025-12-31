@@ -53,6 +53,154 @@ docker-compose down
 
 For detailed setup and development commands, see [CLAUDE.md](./CLAUDE.md) and [QUICKSTART.md](./docs/QUICKSTART.md).
 
+## 🤔 Why Event-Driven Architecture?
+
+This project uses event-driven architecture (EDA) over traditional request-response (REST/RPC) patterns for several strategic reasons:
+
+### 1. **Temporal Decoupling**
+Services don't need to be online simultaneously. If the Bidding Service is down, Market Data can still publish price updates—Bidding will catch up when it restarts.
+
+**Contrast with REST**: If Market Data tried to POST to Bidding's REST endpoint and Bidding was down, the request would fail and need retry logic.
+
+### 2. **Scalability Through Asynchronous Processing**
+High-frequency events (like battery state updates at 1 Hz) can be buffered and processed asynchronously without blocking the publisher.
+
+**Real-world scenario**: Telemetry Service publishes `BatteryStateChanged` every second. Multiple subscribers (Bidding, Telemetry storage, future Alert Service) can process these events at their own pace.
+
+### 3. **Multiple Subscribers Without Coordination**
+New services can subscribe to existing events without modifying publishers. This supports the Open-Closed Principle.
+
+**Example**: When we add an Economics Service in the future, it can subscribe to `ChargingOpportunityDetected` events without changing the Bidding Service code.
+
+### 4. **Event Sourcing Readiness**
+All state changes are captured as events, making it easy to:
+- Rebuild state from event history
+- Audit trail for regulatory compliance
+- Time-travel debugging ("What was the battery state at 3 PM yesterday?")
+- Replay events for testing new algorithms
+
+### 5. **Business Domain Alignment**
+The energy market is inherently event-driven:
+- AEMO publishes price forecasts (events)
+- Batteries transition states (charging started/completed = events)
+- Dispatch signals from grid operators (events)
+
+**Modeling the domain as events** makes the system more intuitive and maintainable.
+
+### 6. **Fault Isolation**
+If one service has a bug and crashes, it doesn't cascade to other services. Event-driven systems naturally create bulkheads.
+
+**Example**: If Bidding Service has a bug processing price updates, Market Data and Telemetry keep working. When Bidding is fixed, it resumes processing.
+
+### Trade-offs Accepted
+
+Event-driven architecture isn't free:
+- **Eventual consistency**: State across services may be briefly out of sync (acceptable for battery optimization)
+- **Debugging complexity**: Distributed traces require more tooling (Jaeger/Zipkin in production)
+- **Monitoring overhead**: Need to track event lag and dead letters
+
+For this domain (battery optimization), the benefits significantly outweigh the costs.
+
+## 📖 Service Boundaries Explained
+
+Each microservice owns a **bounded context** in the domain:
+
+| Service | Bounded Context | Owns | Publishes Events | Subscribes To |
+|---------|----------------|------|------------------|---------------|
+| **Asset Management** | Battery specifications | Battery aggregate (capacity, power limits, constraints) | `battery.registered.v1` | None (source of truth) |
+| **Market Data** | Energy pricing | MarketPrice aggregate (time-series pricing data) | `market.price.updated.v1` | None (integrates with AEMO) |
+| **Telemetry** | Real-time monitoring | BatteryState (SoC, power, temperature) | `battery.state.changed.v1` (1 Hz) | `battery.connection.established.v1` |
+| **Device Interface** | Hardware control | BatteryAdapter (vendor abstraction layer) | `charging.started.v1`, `discharging.started.v1`, `charging.completed.v1`, `discharging.completed.v1` | `charging.command.issued.v1`, `discharging.command.issued.v1` |
+| **Bidding** | Trading decisions | BiddingDecision (arbitrage algorithm) | `charging.opportunity.detected.v1`, `discharging.opportunity.detected.v1`, `charging.command.issued.v1`, `discharging.command.issued.v1` | `battery.state.changed.v1`, `market.price.updated.v1`, `battery.registered.v1` |
+
+**Key Principle**: Services communicate **only through events** (no direct database access, no synchronous RPC).
+
+### Why DB-per-Service?
+
+Each service has its own PostgreSQL database:
+- **Asset Management**: `asset-db` on port 5432
+- **Market Data**: `market-db` on port 5433
+- **Telemetry**: `telemetry-db` on port 5434
+- **Bidding**: No database (stateless, in-memory caches rebuilt from events)
+- **Device Interface**: No database (runtime state only)
+
+**Benefits**:
+1. **Independent schema evolution**: Market Data can change its schema without coordinating with Asset Management
+2. **Technology flexibility**: Could use TimescaleDB for Telemetry without affecting other services
+3. **Deployment independence**: Can restart/upgrade services independently
+4. **Data ownership**: Clear boundaries prevent accidental coupling
+
+**Trade-off**: Need event-driven synchronization instead of database joins (eventual consistency).
+
+## 🎮 How to Run the System
+
+### Prerequisites
+- Docker & Docker Compose
+- Go 1.23+ (for local development)
+- curl (for testing REST APIs)
+
+### Full System Startup
+
+```bash
+# 1. Start infrastructure (NATS + 3 PostgreSQL databases)
+docker-compose up -d nats asset-db market-db telemetry-db
+
+# 2. Verify infrastructure health
+curl http://localhost:8222/healthz  # NATS health check
+docker-compose ps                    # All should be "healthy"
+
+# 3. Start all services
+docker-compose up -d asset-management market-data telemetry device-interface bidding
+
+# 4. View aggregated logs
+docker-compose logs -f
+
+# 5. View specific service logs
+docker-compose logs -f bidding
+```
+
+### Running Services Locally (Development)
+
+```bash
+# Terminal 1: Asset Management (port 8080)
+cd services/asset-management
+go run cmd/server/main.go
+
+# Terminal 2: Market Data (port 8081)
+cd services/market-data
+go run cmd/server/main.go
+
+# Terminal 3: Telemetry (port 8082)
+cd services/telemetry
+go run cmd/server/main.go
+
+# Terminal 4: Device Interface (port 8083)
+cd services/device-interface
+BATTERY_ID=battery-123 ADAPTER_TYPE=TeslaLike CAPACITY=200 MAX_POWER=100 go run cmd/server/main.go
+
+# Terminal 5: Bidding (event-driven, no port)
+cd services/bidding
+AUTOMATION_MODE=FULL_AUTO go run cmd/server/main.go
+
+# Terminal 6: Event Monitor (see all events)
+cd tools/event-subscriber
+go run main.go ">"  # Subscribe to all events
+```
+
+### Testing the System End-to-End
+
+See [DEMO.md](./docs/DEMO.md) for a comprehensive step-by-step demo scenario with expected events and troubleshooting.
+
+### Cleanup
+
+```bash
+# Stop services (preserve data)
+docker-compose down
+
+# Stop and remove ALL data (fresh start)
+docker-compose down -v
+```
+
 ## 📚 Documentation
 
 **Core Documentation**:
@@ -85,6 +233,19 @@ For detailed setup and development commands, see [CLAUDE.md](./CLAUDE.md) and [Q
   - [M4 API Spec](./docs/milestones/M4-API-SPEC.md) - NATS pub/sub patterns
   - [M4 Checklist](./docs/milestones/M4-CHECKLIST.md) - Event integration guide
   - [pkg/events README](./pkg/events/README.md) - Event library usage guide
+- **M5 (Telemetry + Device Interface)**:
+  - [M5 Overview](./docs/milestones/M5-OVERVIEW.md) - Hardware abstraction and real-time monitoring
+  - [M5 Domain Spec](./docs/milestones/M5-DOMAIN-SPEC.md) - BatteryAdapter interface and BatteryState aggregate
+  - [M5 API Spec](./docs/milestones/M5-API-SPEC.md) - Telemetry endpoints and Device Interface events
+  - [M5 Checklist](./docs/milestones/M5-CHECKLIST.md) - Implementation guide
+  - [Telemetry Service README](./services/telemetry/README.md) - Complete service documentation
+  - [Device Interface README](./services/device-interface/README.md) - Hardware adapter documentation
+- **M6 (Bidding Service)**:
+  - [M6 Overview](./docs/milestones/M6-OVERVIEW.md) - Arbitrage algorithm and business logic
+  - [M6 Domain Spec](./docs/milestones/M6-DOMAIN-SPEC.md) - Bidding decision algorithm
+  - [M6 API Spec](./docs/milestones/M6-API-SPEC.md) - Event subscriptions and publications
+  - [M6 Checklist](./docs/milestones/M6-CHECKLIST.md) - Implementation guide
+  - [Bidding Service README](./services/bidding/README.md) - Complete service documentation
 
 ## 🎓 Learning Focus
 
@@ -141,13 +302,24 @@ Inspired by battery optimization platforms in the Australian energy market, such
   - 7 new events added to pkg/events library
   - End-to-end event flow validated
 
-**🚧 Next Up**: M6 (Bidding Service)
+- **M6: Bidding Service** - Real-time arbitrage decision engine
+  - **94% test coverage** overall (domain: 96.9%, cache: 100%, service: 88.2%)
+  - Simple arbitrage algorithm (charge < $50/MWh, discharge > $100/MWh)
+  - In-memory state management with thread-safe caches (sync.RWMutex)
+  - Event-driven architecture (subscribes to 3 event types, publishes 4)
+  - Automation modes: MANUAL (detect only) and FULL_AUTO (detect + execute)
+  - Stateless service (no database, rebuilt from events)
+  - 4 new events: ChargingOpportunityDetected, DischargingOpportunityDetected, ChargingCommandIssued, DischargingCommandIssued
+  - Integration testing validated (end-to-end event flow)
+
+**🎉 MVP Complete!** All core services implemented (M0-M6)
 
 **Services Running**:
 - Asset Management: REST API (8080) + Event Publishing
 - Market Data: REST API (8081) + Event Publishing
 - Telemetry: REST API (8082) + Time-series storage
-- Device Interface: Event-driven command handler
+- Device Interface: Event-driven command handler (port 8083)
+- Bidding: Event-driven arbitrage engine (stateless)
 - Infrastructure: NATS (4222), PostgreSQL x3 (5432, 5433, 5434)
 
 See [PLANNING.md](./PLANNING.md) for detailed milestone tracking and next steps.

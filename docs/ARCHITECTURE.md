@@ -11,13 +11,16 @@ graph TB
     end
 
     subgraph "Battery Optimization Platform"
-        subgraph "Core Services"
-            Asset[Asset Management<br/>Service]
-            Market[Market Data<br/>Service]
-            Telemetry[Telemetry<br/>Service]
-            Device[Device Interface<br/>Service]
-            Bidding[Bidding<br/>Service]
-            Economics[Economics<br/>Service]
+        subgraph "Core Services (✅ Implemented)"
+            Asset[Asset Management<br/>Service<br/>✅ M2]
+            Market[Market Data<br/>Service<br/>✅ M3]
+            Telemetry[Telemetry<br/>Service<br/>✅ M5]
+            Device[Device Interface<br/>Service<br/>✅ M5]
+            Bidding[Bidding<br/>Service<br/>✅ M6]
+        end
+
+        subgraph "Future Services"
+            Economics[Economics<br/>Service<br/>⏳ Future]
         end
 
         subgraph "Infrastructure"
@@ -227,9 +230,9 @@ graph TB
 
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
-| **Language** | Go 1.21+ | Service implementation |
-| **Event Bus** | NATS | Asynchronous messaging |
-| **Database** | PostgreSQL 15 | Per-service data storage |
+| **Language** | Go 1.23 | Service implementation |
+| **Event Bus** | NATS 2.10 | Asynchronous messaging |
+| **Database** | PostgreSQL 18 | Per-service data storage |
 | **Containers** | Docker + Docker Compose | Local development |
 | **Orchestration** | Kubernetes (future) | Production deployment |
 | **Observability** | Prometheus + Grafana (future) | Metrics and monitoring |
@@ -324,10 +327,13 @@ graph TB
 
 ## Scalability Considerations
 
-### Current (4-week project)
+### Current (MVP - Educational Project)
 - Single instance per service
+- 5 microservices implemented (Asset Management, Market Data, Telemetry, Device Interface, Bidding)
 - Suitable for 1-10 batteries
 - Development/demo environment
+- Event-driven architecture with NATS
+- DB-per-service pattern (3 PostgreSQL databases)
 
 ### Future Production
 - **Horizontal scaling**: Multiple service instances

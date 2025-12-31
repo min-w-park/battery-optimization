@@ -508,27 +508,37 @@ This document tracks progress on building a battery optimization system using mi
 
 ---
 
-### ⏳ M7: Documentation + Polish
+### ✅ M7: Documentation + Polish - COMPLETED (2025-12-31)
 **Goal**: Ready to share
 
 **Tasks:**
-- [ ] Complete architecture diagram
-- [ ] Finalize README
+- [x] Complete architecture diagram
+- [x] Finalize README
   - Why event-driven?
   - Service boundaries explanation
   - How to run locally
-- [ ] Production TODO list
+- [x] Production TODO list
   - Planning Service
   - Alert Service
   - Observability (Prometheus/Grafana)
   - CI/CD pipeline
   - Kubernetes deployment
-- [ ] Document demo scenario
-- [ ] (Optional) Demo video or animated GIF
+- [x] Document demo scenario
+- [ ] (Optional) Demo video or animated GIF - Deferred to future
 
 **Completion Criteria**:
-- External person can understand project from README
-- System runs with `docker-compose up`
+- ✅ External person can understand project from README
+- ✅ System runs with `docker-compose up`
+
+**Deliverables**:
+- Updated [ARCHITECTURE.md](./docs/ARCHITECTURE.md) with current implementation status (5 services)
+- Comprehensive [README.md](./README.md) with "Why Event-Driven?" and "How to Run" sections
+- Service boundaries table with event publishing/subscribing details
+- [DEMO.md](./docs/DEMO.md) with step-by-step demo scenario
+- [PRODUCTION-TODO.md](./docs/PRODUCTION-TODO.md) with 9 phases of production readiness work
+- [EVENTS.md](./EVENTS.md) updated with implementation status (13/25 events implemented)
+- [CLAUDE.md](./CLAUDE.md) updated with M6 completion status
+- Docker Compose verified working with all 5 services + infrastructure
 
 ---
 

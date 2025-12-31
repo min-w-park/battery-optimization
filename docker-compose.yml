@@ -104,8 +104,8 @@ services:
   # Bidding Service (M6)
   bidding:
     build:
-      context: ./services/bidding
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./services/bidding/Dockerfile
     container_name: bidding
     environment:
       NATS_URL: nats://nats:4222

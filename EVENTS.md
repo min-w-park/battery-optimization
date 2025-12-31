@@ -12,6 +12,65 @@ This document catalogs all domain events in the battery optimization system. Eve
 4. **Versioned**: Support backward compatibility through versioning
 5. **Business-focused**: Use domain language, not technical jargon
 
+## Implementation Status
+
+Events are organized into categories with implementation status tracked below:
+
+### ✅ Implemented Events (13/25)
+
+**Initialization (2/5)**:
+- ✅ **BatteryRegistered** - Asset Management Service (M2)
+- ✅ **BatteryConnectionEstablished** - Device Interface Service (M5)
+- ⏳ BatteryTestStarted - Planned
+- ⏳ BatteryTestCompleted - Planned
+- ⏳ BatteryReadyToOperate - Planned
+
+**Market Data (1/3)**:
+- ✅ **MarketPriceUpdated** - Market Data Service (M3)
+- ⏳ AemoPriceForecastReceived - Future work
+- ⏳ InternalPriceForecastGenerated - Future work
+
+**Charging Operations (4/7)**:
+- ✅ **ChargingOpportunityDetected** - Bidding Service (M6)
+- ✅ **ChargingCommandIssued** - Bidding Service (M6)
+- ✅ **ChargingStarted** - Device Interface Service (M5)
+- ✅ **ChargingCompleted** - Device Interface Service (M5)
+- ⏳ ConflictDetected - Planned
+- ⏳ EconomicsCalculationRequested - Future (Economics Service)
+- ⏳ EconomicsCalculated - Future (Economics Service)
+
+**Discharging Operations (4/4)**:
+- ✅ **DischargingOpportunityDetected** - Bidding Service (M6)
+- ✅ **DischargingCommandIssued** - Bidding Service (M6)
+- ✅ **DischargingStarted** - Device Interface Service (M5)
+- ✅ **DischargingCompleted** - Device Interface Service (M5)
+
+**FCAS (0/4)**:
+- ⏳ FcasContractStarted - Future work
+- ⏳ FcasContractEnded - Future work
+- ⏳ FcasDispatchReceived - Future work
+- ⏳ FcasDispatchCompleted - Future work
+
+**Shared Events (2/2)**:
+- ✅ **BatteryStateChanged** - Telemetry Service (M5)
+- ✅ **ConflictResolved** - Placeholder implementation (M5)
+
+### Event Legend
+- ✅ **Implemented**: Event struct defined in `pkg/events`, published and/or subscribed by at least one service
+- ⏳ **Planned**: Event schema documented but not yet implemented
+- 🔮 **Future**: Requires additional services or external integrations
+
+### Implementation by Service
+
+| Service | Events Published | Events Subscribed |
+|---------|-----------------|-------------------|
+| **Asset Management** (M2) | BatteryRegistered | None |
+| **Market Data** (M3) | MarketPriceUpdated | None |
+| **Telemetry** (M5) | BatteryStateChanged | BatteryConnectionEstablished |
+| **Device Interface** (M5) | BatteryConnectionEstablished, ChargingStarted, ChargingCompleted, DischargingStarted, DischargingCompleted, ConflictResolved | ChargingCommandIssued, DischargingCommandIssued |
+| **Bidding** (M6) | ChargingOpportunityDetected, DischargingOpportunityDetected, ChargingCommandIssued, DischargingCommandIssued | BatteryRegistered, MarketPriceUpdated, BatteryStateChanged |
+| **Economics** (Future) | EconomicsCalculated, ConflictResolutionSuggested | ChargingOpportunityDetected, DischargingOpportunityDetected, ConflictDetected |
+
 ---
 
 ## Event Catalog

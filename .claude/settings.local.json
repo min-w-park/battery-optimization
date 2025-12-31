@@ -42,7 +42,10 @@
       "Bash(timeout:*)",
       "Bash(./test_state_publisher.sh:*)",
       "Bash(cat:*)",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Bash(git rm:*)",
+      "Bash(git push:*)",
+      "Bash(git rebase:*)"
     ]
   }
 }

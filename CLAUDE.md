@@ -363,14 +363,23 @@ Mock adapters simulate different vendor behaviors (TeslaLike, BYDLike) with Cust
   - Telemetry Service: 86.1% coverage, time-series storage, REST API
   - Device Interface Service: 77.5% coverage, BatteryAdapter interface, TeslaLike mock adapter
   - 7 new events, end-to-end event flow validated
+- **M6: Bidding Service** - Real-time arbitrage decision engine
+  - 94% test coverage overall (domain: 96.9%, cache: 100%, service: 88.2%)
+  - Simple arbitrage algorithm (charge < $50/MWh, discharge > $100/MWh)
+  - In-memory state management with thread-safe caches (sync.RWMutex)
+  - Event-driven architecture (subscribes to 3 event types, publishes 4)
+  - Automation modes: MANUAL and FULL_AUTO
+  - Stateless service (no database)
+  - 4 new events: ChargingOpportunityDetected, DischargingOpportunityDetected, ChargingCommandIssued, DischargingCommandIssued
 
-**🚧 Current**: M6 - Bidding Service
+**🚧 Current**: M7 - Documentation polish and final verification
 
 See [PLANNING.md](PLANNING.md) for detailed milestone tracking and task breakdowns.
 
-**Upcoming Milestones**:
-- M6: Bidding Service (Arbitrage algorithm, event subscriptions)
-- M7: Documentation polish
+**System Status**: MVP Complete! 5 microservices implemented with event-driven architecture.
+- Services: Asset Management, Market Data, Telemetry, Device Interface, Bidding
+- Events: 13/25 events implemented (see [EVENTS.md](EVENTS.md) for full status)
+- Infrastructure: NATS 2.10, PostgreSQL 18 (3 databases), Docker Compose
 
 ## Key Design Decisions
 
