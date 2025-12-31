@@ -59,7 +59,7 @@ func TestCreateMarketPrice_Success(t *testing.T) {
 		Price:         85.50,
 		Demand:        8200.0,
 		IntervalType:  "5MIN_PREDISPATCH",
-		IntervalStart: "2025-12-30T10:00:00Z",
+		IntervalStart: "2026-01-15T10:00:00Z",
 		PublishedAt:   time.Now().Add(-5 * time.Minute).Format(time.RFC3339),
 	}
 
@@ -149,7 +149,7 @@ func TestCreateMarketPrice_DuplicateInterval(t *testing.T) {
 		Price:         85.50,
 		Demand:        8200.0,
 		IntervalType:  "5MIN_PREDISPATCH",
-		IntervalStart: "2025-12-30T10:00:00Z",
+		IntervalStart: "2026-01-15T10:00:00Z",
 		PublishedAt:   time.Now().Add(-5 * time.Minute).Format(time.RFC3339),
 	}
 
