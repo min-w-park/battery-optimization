@@ -189,7 +189,65 @@ go run main.go ">"  # Subscribe to all events
 
 ### Testing the System End-to-End
 
+#### Manual Testing with DEMO.md
+
 See [DEMO.md](./docs/DEMO.md) for a comprehensive step-by-step demo scenario with expected events and troubleshooting.
+
+#### Automated End-to-End Tests
+
+The system includes 13 comprehensive E2E tests that validate complete workflows across all 5 microservices:
+
+**Prerequisites**: All infrastructure services must be running (NATS + 3 PostgreSQL databases)
+
+```bash
+# Run all E2E tests
+cd tests/e2e
+go test -v
+
+# Run specific test categories
+go test -v -run TestCompleteArbitrageWorkflow  # Full charging/discharging cycle
+go test -v -run TestDayInTheLife               # Multi-battery scenario
+go test -v -run TestChargingWorkflow           # Charging opportunity detection
+```
+
+**Test Categories**:
+
+1. **Happy Path Tests** (4 tests):
+   - `TestChargingWorkflow` - Low price triggers charging opportunity
+   - `TestDischargingWorkflow` - High price triggers discharging opportunity
+   - `TestMultipleBatteriesWorkflow` - Multiple batteries operate independently
+   - `TestPriceChangeTriggersDecision` - Price updates trigger new decisions
+
+2. **Edge Cases** (4 tests):
+   - `TestEdgeCaseChargingThreshold` - Price exactly at $50/MWh threshold
+   - `TestEdgeCaseDischargingThreshold` - Price exactly at $100/MWh threshold
+   - `TestEdgeCaseSoCBoundaries` - SoC at 0%, 50%, 100%
+   - `TestNoOpportunityMidRange` - Mid-range price ($75/MWh) triggers no action
+
+3. **Error Handling** (3 tests):
+   - `TestInvalidBatteryState` - Invalid SoC values handled gracefully
+   - `TestServiceUnavailable` - Services handle NATS disconnection
+   - `TestEventPublishFailure` - Best-effort publishing doesn't block operations
+
+4. **Complete Workflows** (2 tests):
+   - `TestCompleteArbitrageWorkflow` - Full cycle: charge low → discharge high → revenue
+   - `TestDayInTheLife` - 24-hour simulation with multiple batteries and price changes
+
+**What E2E Tests Validate**:
+- ✅ Event-driven communication across all services
+- ✅ NATS pub/sub reliability
+- ✅ Business logic correctness (charging/discharging decisions)
+- ✅ Service integration (Asset Management → Telemetry → Bidding → Device Interface)
+- ✅ Error handling and graceful degradation
+- ✅ Multi-battery scenarios
+- ✅ Real-world arbitrage workflows
+
+**E2E Test Infrastructure**:
+- **Helpers** (`helpers.go`): REST API calls, NATS publishing, event waiting
+- **Assertions** (`assertions.go`): Event validation with structured checks
+- **Fixtures** (`fixtures.go`): Test data (price scenarios, SoC levels, battery configs)
+
+For detailed E2E test documentation, see [tests/e2e/README.md](./tests/e2e/README.md).
 
 ### Cleanup
 
