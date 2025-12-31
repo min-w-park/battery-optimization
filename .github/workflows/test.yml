@@ -117,6 +117,7 @@ jobs:
           echo "All modules tested successfully"
 
       - name: Upload coverage to Codecov
+        continue-on-error: true
         uses: codecov/codecov-action@v4
         with:
           file: ./coverage.out
