@@ -106,7 +106,8 @@ func TestCommandHandler_HandleChargingCommand(t *testing.T) {
 		Power:        15.0,
 		TargetSoC:    80.0,
 		Duration:     60,
-		DecisionMode: "FULL_AUTO",
+		Reason:       "Price below threshold, profitable charging window",
+		IssuedBy:     "BIDDING_SERVICE",
 		Timestamp:    time.Now(),
 		EventVersion: "v1",
 	}
@@ -157,12 +158,18 @@ func TestCommandHandler_HandleDischargingCommand(t *testing.T) {
 
 	// When: Handling discharging command event
 	eventData := events.DischargingCommandIssued{
-		BatteryID:    "battery-123",
-		CommandID:    "cmd-789",
-		Power:        25.0,
-		Duration:     30,
-		DecisionMode: "SEMI_AUTO",
-		ApprovedBy:   "operator-001",
+		BatteryID: "battery-123",
+		CommandID: "cmd-789",
+		Power:     25.0,
+		Duration:  30,
+		StopConditions: events.CommandStopConditions{
+			PriceThreshold: 50.0,
+			TargetSoC:      20.0,
+			Duration:       30,
+			FcasDispatch:   false,
+		},
+		Reason:       "High price opportunity detected",
+		IssuedBy:     "operator-001",
 		Timestamp:    time.Now(),
 		EventVersion: "v1",
 	}

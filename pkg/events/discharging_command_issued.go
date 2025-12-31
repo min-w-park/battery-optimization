@@ -15,7 +15,9 @@ type CommandStopConditions struct {
 // Trigger: Discharging opportunity detected AND automation mode allows command execution
 type DischargingCommandIssued struct {
 	BatteryID      string                `json:"battery_id"`
+	CommandID      string                `json:"command_id"`      // Unique command identifier
 	Power          float64               `json:"power"`           // Discharge power (MW, positive for discharge)
+	Duration       int                   `json:"duration"`        // Command duration in minutes
 	StopConditions CommandStopConditions `json:"stop_conditions"` // Conditions for stopping discharge
 	Reason         string                `json:"reason"`          // Human-readable explanation
 	IssuedBy       string                `json:"issued_by"`       // Who issued the command
