@@ -22,6 +22,8 @@ go.work
 # Executables
 /bin/
 /dist/
+**/bin/
+services/*/bin/
 
 # IDE
 .vscode/
