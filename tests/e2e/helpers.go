@@ -6,10 +6,14 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sync/atomic"
 	"time"
 
 	"github.com/nats-io/nats.go"
 )
+
+// Global counter for generating unique price intervals
+var priceIntervalCounter int64
 
 // REST API Helpers
 
@@ -62,7 +66,9 @@ func CreateBattery(baseURL string, capacity, maxPower, rampRate, efficiency floa
 
 // CreatePrice creates a new market price via Market Data API
 func CreatePrice(baseURL string, price float64, interval int) error {
-	intervalStart := time.Now().Add(24 * time.Hour).Truncate(5 * time.Minute)
+	// Use atomic counter to generate unique intervals across all tests
+	uniqueInterval := atomic.AddInt64(&priceIntervalCounter, 1)
+	intervalStart := time.Now().Add(24 * time.Hour).Truncate(5 * time.Minute).Add(time.Duration(uniqueInterval) * 5 * time.Minute)
 	publishedAt := time.Now().Add(-5 * time.Minute)
 
 	payload := map[string]interface{}{
