@@ -24,11 +24,14 @@ func main() {
 		CommandID:    "cmd-002",
 		Power:        25.0,
 		Duration:     30,
-		StopConditions: events.StopConditions{
-			MinSoC: 20.0,
+		StopConditions: events.CommandStopConditions{
+			PriceThreshold: 50.0,
+			TargetSoC:      20.0,
+			Duration:       30,
+			FcasDispatch:   false,
 		},
-		DecisionMode: "SEMI_AUTO",
-		ApprovedBy:   "operator-001",
+		Reason:       "High price opportunity detected",
+		IssuedBy:     "operator-001",
 		Timestamp:    time.Now(),
 		EventVersion: "v1",
 	}
