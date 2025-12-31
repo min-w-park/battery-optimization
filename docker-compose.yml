@@ -70,8 +70,8 @@ services:
   # Asset Management Service (M2)
   asset-management:
     build:
-      context: ./services/asset-management
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./services/asset-management/Dockerfile
     container_name: asset-management
     ports:
       - "8080:8080"
@@ -79,16 +79,19 @@ services:
       DATABASE_URL: postgres://asset_user:asset_pass@asset-db:5432/asset_management?sslmode=disable
       PORT: "8080"
       LOG_LEVEL: info
+      NATS_URL: nats://nats:4222
     depends_on:
       asset-db:
+        condition: service_healthy
+      nats:
         condition: service_healthy
     restart: unless-stopped
 
   # Market Data Service (M3)
   market-data:
     build:
-      context: ./services/market-data
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./services/market-data/Dockerfile
     container_name: market-data
     ports:
       - "8081:8080"
@@ -96,8 +99,11 @@ services:
       DATABASE_URL: postgres://market_user:market_pass@market-db:5432/market_data?sslmode=disable
       PORT: "8080"
       LOG_LEVEL: info
+      NATS_URL: nats://nats:4222
     depends_on:
       market-db:
+        condition: service_healthy
+      nats:
         condition: service_healthy
     restart: unless-stopped
 
