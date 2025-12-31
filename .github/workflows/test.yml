@@ -126,9 +126,6 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-      - name: Generate coverage report
-        run: go tool cover -func=coverage.out
-
   lint:
     name: Lint Code
     runs-on: ubuntu-latest
