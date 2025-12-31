@@ -25,9 +25,8 @@ jobs:
         service:
           - asset-management
           - market-data
-          - telemetry
-          - device-interface
           - bidding
+        # TODO: Add telemetry and device-interface when Dockerfiles are created
 
     steps:
       - name: Checkout code
@@ -59,7 +58,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: services/${{ matrix.service }}
+          context: .
           file: services/${{ matrix.service }}/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}

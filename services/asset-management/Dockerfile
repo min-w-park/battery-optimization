@@ -7,11 +7,11 @@ RUN apk add --no-cache git
 WORKDIR /app
 
 # Copy go mod files
-COPY go.mod go.sum ./
+COPY services/asset-management/go.mod services/asset-management/go.sum* ./
 RUN go mod download
 
 # Copy source code
-COPY . .
+COPY services/asset-management/ .
 
 # Build the application
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o server ./cmd/server
