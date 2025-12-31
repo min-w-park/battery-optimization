@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -50,6 +51,14 @@ func TestEdgeCaseChargingThreshold(t *testing.T) {
 	require.NoError(t, err)
 	AssertBatteryRegistered(t, msg, batteryID, DefaultCapacity, DefaultMaxPower)
 
+	// Publish battery state (low SoC, IDLE) BEFORE price
+	err = PublishBatteryState(nc, batteryID, LowSoC, 0.0, StateIdle)
+	require.NoError(t, err)
+	t.Logf("✓ Battery state: SoC=%.1f%%, State=%s", LowSoC, StateIdle)
+
+	// Allow time for bidding engine to process battery state
+	time.Sleep(100 * time.Millisecond)
+
 	// Create edge case price ($49/MWh - just below $50 threshold)
 	err = CreatePrice(MarketDataURL, EdgeLowPrice, DefaultInterval)
 	require.NoError(t, err)
@@ -58,11 +67,6 @@ func TestEdgeCaseChargingThreshold(t *testing.T) {
 	msg, err = WaitForEvent(sub, "market.price.updated.v1", EventTimeout)
 	require.NoError(t, err)
 	AssertMarketPriceUpdated(t, msg, EdgeLowPrice)
-
-	// Publish battery state (low SoC, IDLE)
-	err = PublishBatteryState(nc, batteryID, LowSoC, 0.0, StateIdle)
-	require.NoError(t, err)
-	t.Logf("✓ Battery state: SoC=%.1f%%, State=%s", LowSoC, StateIdle)
 
 	// Should trigger charging opportunity (< $50)
 	msg, err = WaitForEvent(sub, "charging.opportunity.detected.v1", EventTimeout)
@@ -120,6 +124,14 @@ func TestEdgeCaseDischargingThreshold(t *testing.T) {
 	require.NoError(t, err)
 	AssertBatteryRegistered(t, msg, batteryID, DefaultCapacity, DefaultMaxPower)
 
+	// Publish battery state (high SoC, IDLE) BEFORE price
+	err = PublishBatteryState(nc, batteryID, VeryHighSoC, 0.0, StateIdle)
+	require.NoError(t, err)
+	t.Logf("✓ Battery state: SoC=%.1f%%, State=%s", VeryHighSoC, StateIdle)
+
+	// Allow time for bidding engine to process battery state
+	time.Sleep(100 * time.Millisecond)
+
 	// Create edge case price ($101/MWh - just above $100 threshold)
 	err = CreatePrice(MarketDataURL, EdgeHighPrice, DefaultInterval)
 	require.NoError(t, err)
@@ -128,11 +140,6 @@ func TestEdgeCaseDischargingThreshold(t *testing.T) {
 	msg, err = WaitForEvent(sub, "market.price.updated.v1", EventTimeout)
 	require.NoError(t, err)
 	AssertMarketPriceUpdated(t, msg, EdgeHighPrice)
-
-	// Publish battery state (high SoC, IDLE)
-	err = PublishBatteryState(nc, batteryID, VeryHighSoC, 0.0, StateIdle)
-	require.NoError(t, err)
-	t.Logf("✓ Battery state: SoC=%.1f%%, State=%s", VeryHighSoC, StateIdle)
 
 	// Should trigger discharging opportunity (> $100)
 	msg, err = WaitForEvent(sub, "discharging.opportunity.detected.v1", EventTimeout)
@@ -188,6 +195,14 @@ func TestEdgeCaseSoCBoundaries(t *testing.T) {
 		_, err = WaitForEvent(sub, "battery.registered.v1", EventTimeout)
 		require.NoError(t, err)
 
+		// Publish battery state: SoC at 80% (boundary) BEFORE price
+		err = PublishBatteryState(nc, batteryID, HighSoC, 0.0, StateIdle)
+		require.NoError(t, err)
+		t.Logf("✓ Battery SoC: %.1f%% (at charging target boundary)", HighSoC)
+
+		// Allow time for bidding engine to process battery state
+		time.Sleep(100 * time.Millisecond)
+
 		// Low price (charging opportunity)
 		err = CreatePrice(MarketDataURL, LowPrice, DefaultInterval)
 		require.NoError(t, err)
@@ -195,11 +210,6 @@ func TestEdgeCaseSoCBoundaries(t *testing.T) {
 
 		_, err = WaitForEvent(sub, "market.price.updated.v1", EventTimeout)
 		require.NoError(t, err)
-
-		// Publish battery state: SoC at 80% (boundary)
-		err = PublishBatteryState(nc, batteryID, HighSoC, 0.0, StateIdle)
-		require.NoError(t, err)
-		t.Logf("✓ Battery SoC: %.1f%% (at charging target boundary)", HighSoC)
 
 		// Should NOT trigger charging (SoC >= 80%)
 		err = AssertNoEvent(sub, NoEventTimeout)
@@ -233,6 +243,14 @@ func TestEdgeCaseSoCBoundaries(t *testing.T) {
 		_, err = WaitForEvent(sub, "battery.registered.v1", EventTimeout)
 		require.NoError(t, err)
 
+		// Publish battery state: SoC at 30% (boundary) BEFORE price
+		err = PublishBatteryState(nc, batteryID, MinSoCForDischarge, 0.0, StateIdle)
+		require.NoError(t, err)
+		t.Logf("✓ Battery SoC: %.1f%% (at discharging minimum boundary)", MinSoCForDischarge)
+
+		// Allow time for bidding engine to process battery state
+		time.Sleep(100 * time.Millisecond)
+
 		// High price (discharging opportunity)
 		err = CreatePrice(MarketDataURL, HighPrice, DefaultInterval)
 		require.NoError(t, err)
@@ -240,11 +258,6 @@ func TestEdgeCaseSoCBoundaries(t *testing.T) {
 
 		_, err = WaitForEvent(sub, "market.price.updated.v1", EventTimeout)
 		require.NoError(t, err)
-
-		// Publish battery state: SoC at 30% (boundary)
-		err = PublishBatteryState(nc, batteryID, MinSoCForDischarge, 0.0, StateIdle)
-		require.NoError(t, err)
-		t.Logf("✓ Battery SoC: %.1f%% (at discharging minimum boundary)", MinSoCForDischarge)
 
 		// Should NOT trigger discharging (SoC <= 30%)
 		err = AssertNoEvent(sub, NoEventTimeout)
@@ -296,6 +309,14 @@ func TestNoOpportunityMidRange(t *testing.T) {
 	require.NoError(t, err)
 	AssertBatteryRegistered(t, msg, batteryID, DefaultCapacity, DefaultMaxPower)
 
+	// Publish battery state (mid SoC, IDLE) BEFORE price
+	err = PublishBatteryState(nc, batteryID, MidSoC, 0.0, StateIdle)
+	require.NoError(t, err)
+	t.Logf("✓ Battery state: SoC=%.1f%%, State=%s (mid-range)", MidSoC, StateIdle)
+
+	// Allow time for bidding engine to process battery state
+	time.Sleep(100 * time.Millisecond)
+
 	// Create mid-range price (no opportunity)
 	err = CreatePrice(MarketDataURL, MidPrice, DefaultInterval)
 	require.NoError(t, err)
@@ -304,11 +325,6 @@ func TestNoOpportunityMidRange(t *testing.T) {
 	msg, err = WaitForEvent(sub, "market.price.updated.v1", EventTimeout)
 	require.NoError(t, err)
 	AssertMarketPriceUpdated(t, msg, MidPrice)
-
-	// Publish battery state (mid SoC, IDLE)
-	err = PublishBatteryState(nc, batteryID, MidSoC, 0.0, StateIdle)
-	require.NoError(t, err)
-	t.Logf("✓ Battery state: SoC=%.1f%%, State=%s (mid-range)", MidSoC, StateIdle)
 
 	// Should NOT trigger any opportunity
 	err = AssertNoEvent(sub, NoEventTimeout)

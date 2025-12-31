@@ -68,6 +68,14 @@ func TestCompleteArbitrageWorkflow(t *testing.T) {
 
 	// Phase 2: Charging Opportunity (Low Price)
 	t.Log("\n--- Phase 2: Charging Opportunity ---")
+	// Publish battery state: Low SoC, IDLE BEFORE price
+	err = PublishBatteryState(nc, batteryID, LowSoC, 0.0, StateIdle)
+	require.NoError(t, err)
+	t.Logf("✓ Battery state published: SoC=%.1f%%, Power=0 MW, State=%s", LowSoC, StateIdle)
+
+	// Allow time for bidding engine to process battery state
+	time.Sleep(100 * time.Millisecond)
+
 	err = CreatePrice(MarketDataURL, LowPrice, DefaultInterval)
 	require.NoError(t, err)
 	t.Logf("✓ Low price created: $%.2f/MWh (charging threshold: < $%.2f)", LowPrice, ThresholdLow)
@@ -76,11 +84,6 @@ func TestCompleteArbitrageWorkflow(t *testing.T) {
 	require.NoError(t, err)
 	AssertMarketPriceUpdated(t, msg, LowPrice)
 	t.Log("✓ market.price.updated.v1 event received")
-
-	// Publish battery state: Low SoC, IDLE
-	err = PublishBatteryState(nc, batteryID, LowSoC, 0.0, StateIdle)
-	require.NoError(t, err)
-	t.Logf("✓ Battery state published: SoC=%.1f%%, Power=0 MW, State=%s", LowSoC, StateIdle)
 
 	msg, err = WaitForEvent(sub, "charging.opportunity.detected.v1", EventTimeout)
 	require.NoError(t, err)
@@ -225,16 +228,18 @@ func TestDayInTheLife(t *testing.T) {
 
 	// Scenario 1: 6:00 AM - Low price, charge opportunity
 	t.Log("\n--- 6:00 AM: Low Price ---")
+	err = PublishBatteryState(nc, batteryID, currentSoC, 0.0, StateIdle)
+	require.NoError(t, err)
+	t.Logf("✓ Battery SoC: %.0f%%", currentSoC)
+
+	time.Sleep(100 * time.Millisecond)
+
 	err = CreatePrice(MarketDataURL, 30.0, DefaultInterval)
 	require.NoError(t, err)
 	t.Log("✓ Price: $30/MWh")
 
 	_, err = WaitForEvent(sub, "market.price.updated.v1", EventTimeout)
 	require.NoError(t, err)
-
-	err = PublishBatteryState(nc, batteryID, currentSoC, 0.0, StateIdle)
-	require.NoError(t, err)
-	t.Logf("✓ Battery SoC: %.0f%%", currentSoC)
 
 	_, err = WaitForEvent(sub, "charging.opportunity.detected.v1", EventTimeout)
 	require.NoError(t, err)
@@ -249,14 +254,16 @@ func TestDayInTheLife(t *testing.T) {
 
 	// Scenario 2: 9:00 AM - Mid price, no action
 	t.Log("\n--- 9:00 AM: Mid Price ---")
+	err = PublishBatteryState(nc, batteryID, currentSoC, 0.0, StateIdle)
+	require.NoError(t, err)
+
+	time.Sleep(100 * time.Millisecond)
+
 	err = CreatePrice(MarketDataURL, MidPrice, DefaultInterval)
 	require.NoError(t, err)
 	t.Logf("✓ Price: $%.2f/MWh", MidPrice)
 
 	_, err = WaitForEvent(sub, "market.price.updated.v1", EventTimeout)
-	require.NoError(t, err)
-
-	err = PublishBatteryState(nc, batteryID, currentSoC, 0.0, StateIdle)
 	require.NoError(t, err)
 
 	err = AssertNoEvent(sub, NoEventTimeout)
@@ -291,13 +298,15 @@ func TestDayInTheLife(t *testing.T) {
 
 	// Scenario 4: 3:00 PM - Mid price, no action
 	t.Log("\n--- 3:00 PM: Mid Price ---")
+	err = PublishBatteryState(nc, batteryID, currentSoC, 0.0, StateIdle)
+	require.NoError(t, err)
+
+	time.Sleep(100 * time.Millisecond)
+
 	err = CreatePrice(MarketDataURL, MidPrice, DefaultInterval)
 	require.NoError(t, err)
 
 	_, err = WaitForEvent(sub, "market.price.updated.v1", EventTimeout)
-	require.NoError(t, err)
-
-	err = PublishBatteryState(nc, batteryID, currentSoC, 0.0, StateIdle)
 	require.NoError(t, err)
 
 	err = AssertNoEvent(sub, NoEventTimeout)
@@ -306,6 +315,9 @@ func TestDayInTheLife(t *testing.T) {
 
 	// Scenario 5: 6:00 PM - Another low price for second charge
 	t.Log("\n--- 6:00 PM: Low Price (Second Cycle) ---")
+	// Battery state already published from scenario 4, just wait for processing
+	time.Sleep(100 * time.Millisecond)
+
 	err = CreatePrice(MarketDataURL, 35.0, DefaultInterval)
 	require.NoError(t, err)
 	t.Log("✓ Price: $35/MWh")

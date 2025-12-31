@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -47,17 +48,20 @@ func TestInvalidBatteryState(t *testing.T) {
 		_, err = WaitForEvent(sub, "battery.registered.v1", EventTimeout)
 		require.NoError(t, err)
 
+		// Publish battery state: CHARGING (active state) BEFORE price
+		err = PublishBatteryState(nc, batteryID, LowSoC, 50.0, StateCharging)
+		require.NoError(t, err)
+		t.Logf("✓ Battery state: State=%s (already active)", StateCharging)
+
+		// Allow time for bidding engine to process battery state
+		time.Sleep(100 * time.Millisecond)
+
 		// Create low price
 		err = CreatePrice(MarketDataURL, LowPrice, DefaultInterval)
 		require.NoError(t, err)
 
 		_, err = WaitForEvent(sub, "market.price.updated.v1", EventTimeout)
 		require.NoError(t, err)
-
-		// Publish battery state: CHARGING (active state)
-		err = PublishBatteryState(nc, batteryID, LowSoC, 50.0, StateCharging)
-		require.NoError(t, err)
-		t.Logf("✓ Battery state: State=%s (already active)", StateCharging)
 
 		// Should NOT trigger new charging opportunity
 		err = AssertNoEvent(sub, NoEventTimeout)
@@ -91,17 +95,20 @@ func TestInvalidBatteryState(t *testing.T) {
 		_, err = WaitForEvent(sub, "battery.registered.v1", EventTimeout)
 		require.NoError(t, err)
 
+		// Publish battery state: DISCHARGING (active state) BEFORE price
+		err = PublishBatteryState(nc, batteryID, VeryHighSoC, -50.0, StateDischarging)
+		require.NoError(t, err)
+		t.Logf("✓ Battery state: State=%s (already active)", StateDischarging)
+
+		// Allow time for bidding engine to process battery state
+		time.Sleep(100 * time.Millisecond)
+
 		// Create high price
 		err = CreatePrice(MarketDataURL, HighPrice, DefaultInterval)
 		require.NoError(t, err)
 
 		_, err = WaitForEvent(sub, "market.price.updated.v1", EventTimeout)
 		require.NoError(t, err)
-
-		// Publish battery state: DISCHARGING (active state)
-		err = PublishBatteryState(nc, batteryID, VeryHighSoC, -50.0, StateDischarging)
-		require.NoError(t, err)
-		t.Logf("✓ Battery state: State=%s (already active)", StateDischarging)
 
 		// Should NOT trigger new discharging opportunity
 		err = AssertNoEvent(sub, NoEventTimeout)

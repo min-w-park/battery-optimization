@@ -238,7 +238,20 @@ func TestMultipleBatteriesWorkflow(t *testing.T) {
 	require.NoError(t, err)
 	AssertBatteryRegistered(t, msg, battery2ID, DefaultCapacity, DefaultMaxPower)
 
-	// 4. Create low price (charging opportunity)
+	// 4. Publish Battery 1 state: Low SoC, IDLE (should trigger charging) BEFORE price
+	err = PublishBatteryState(nc, battery1ID, LowSoC, 0.0, StateIdle)
+	require.NoError(t, err)
+	t.Logf("✓ Battery 1 state: SoC=%.1f%%, State=%s (should trigger charging)", LowSoC, StateIdle)
+
+	// 5. Publish Battery 2 state: High SoC, IDLE (should NOT trigger charging) BEFORE price
+	err = PublishBatteryState(nc, battery2ID, VeryHighSoC, 0.0, StateIdle)
+	require.NoError(t, err)
+	t.Logf("✓ Battery 2 state: SoC=%.1f%%, State=%s (should NOT trigger charging)", VeryHighSoC, StateIdle)
+
+	// Allow time for bidding engine to process battery states
+	time.Sleep(100 * time.Millisecond)
+
+	// 6. Create low price (charging opportunity)
 	err = CreatePrice(MarketDataURL, LowPrice, DefaultInterval)
 	require.NoError(t, err)
 	t.Logf("✓ Market price created: $%.2f/MWh", LowPrice)
@@ -246,16 +259,6 @@ func TestMultipleBatteriesWorkflow(t *testing.T) {
 	msg, err = WaitForEvent(sub, "market.price.updated.v1", EventTimeout)
 	require.NoError(t, err)
 	AssertMarketPriceUpdated(t, msg, LowPrice)
-
-	// 5. Publish Battery 1 state: Low SoC, IDLE (should trigger charging)
-	err = PublishBatteryState(nc, battery1ID, LowSoC, 0.0, StateIdle)
-	require.NoError(t, err)
-	t.Logf("✓ Battery 1 state: SoC=%.1f%%, State=%s (should trigger charging)", LowSoC, StateIdle)
-
-	// 6. Publish Battery 2 state: High SoC, IDLE (should NOT trigger charging)
-	err = PublishBatteryState(nc, battery2ID, VeryHighSoC, 0.0, StateIdle)
-	require.NoError(t, err)
-	t.Logf("✓ Battery 2 state: SoC=%.1f%%, State=%s (should NOT trigger charging)", VeryHighSoC, StateIdle)
 
 	// 7. Wait for charging.opportunity.detected.v1 - should be for Battery 1 only
 	msg, err = WaitForEvent(sub, "charging.opportunity.detected.v1", EventTimeout)
@@ -322,10 +325,13 @@ func TestPriceChangeTriggersDecision(t *testing.T) {
 	require.NoError(t, err)
 	AssertBatteryRegistered(t, msg, batteryID, DefaultCapacity, DefaultMaxPower)
 
-	// 3. Publish battery state (low SoC, IDLE)
+	// 3. Publish battery state (low SoC, IDLE) BEFORE price
 	err = PublishBatteryState(nc, batteryID, LowSoC, 0.0, StateIdle)
 	require.NoError(t, err)
 	t.Logf("✓ Battery state: SoC=%.1f%%, State=%s", LowSoC, StateIdle)
+
+	// Allow time for bidding engine to process battery state
+	time.Sleep(100 * time.Millisecond)
 
 	// 4. Create mid-range price (no opportunity expected)
 	err = CreatePrice(MarketDataURL, MidPrice, DefaultInterval)
