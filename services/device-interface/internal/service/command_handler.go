@@ -4,8 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"time"
+
+	"go.uber.org/zap"
 
 	"github.com/minwook/battery-optimization/pkg/events"
 	"github.com/minwook/battery-optimization/services/device-interface/internal/domain"
@@ -15,20 +16,26 @@ import (
 type CommandHandler struct {
 	adapter   domain.BatteryAdapter
 	publisher events.EventPublisher
+	log       *zap.Logger
 }
 
 // NewCommandHandler creates a new command handler
-func NewCommandHandler(adapter domain.BatteryAdapter, publisher events.EventPublisher) *CommandHandler {
+func NewCommandHandler(adapter domain.BatteryAdapter, publisher events.EventPublisher, log *zap.Logger) *CommandHandler {
 	return &CommandHandler{
 		adapter:   adapter,
 		publisher: publisher,
+		log:       log,
 	}
 }
 
 // HandleChargingCommand processes a charging command event
 func (h *CommandHandler) HandleChargingCommand(ctx context.Context, event events.ChargingCommandIssued) error {
-	log.Printf("Handling charging command: BatteryID=%s, CommandID=%s, Power=%.2f MW, TargetSoC=%.2f%%",
-		event.BatteryID, event.CommandID, event.Power, event.TargetSoC)
+	h.log.Info("handling charging command",
+		zap.String("battery_id", event.BatteryID),
+		zap.String("command_id", event.CommandID),
+		zap.Float64("power_mw", event.Power),
+		zap.Float64("target_soc", event.TargetSoC),
+	)
 
 	// Get current state
 	state, err := h.adapter.GetState(ctx)
@@ -64,17 +71,23 @@ func (h *CommandHandler) HandleChargingCommand(ctx context.Context, event events
 	defer cancel()
 
 	if err := h.publisher.Publish(pubCtx, "charging.started.v1", startedEvent); err != nil {
-		log.Printf("WARNING: Failed to publish ChargingStarted event: %v", err)
+		h.log.Warn("failed to publish charging.started.v1 event", zap.Error(err))
 	}
 
-	log.Printf("Charging command accepted: CurrentSoC=%.2f%%, TargetSoC=%.2f%%", state.SoC, event.TargetSoC)
+	h.log.Info("charging command accepted",
+		zap.Float64("current_soc", state.SoC),
+		zap.Float64("target_soc", event.TargetSoC),
+	)
 	return nil
 }
 
 // HandleDischargingCommand processes a discharging command event
 func (h *CommandHandler) HandleDischargingCommand(ctx context.Context, event events.DischargingCommandIssued) error {
-	log.Printf("Handling discharging command: BatteryID=%s, CommandID=%s, Power=%.2f MW",
-		event.BatteryID, event.CommandID, event.Power)
+	h.log.Info("handling discharging command",
+		zap.String("battery_id", event.BatteryID),
+		zap.String("command_id", event.CommandID),
+		zap.Float64("power_mw", event.Power),
+	)
 
 	// Get current state
 	state, err := h.adapter.GetState(ctx)
@@ -108,16 +121,19 @@ func (h *CommandHandler) HandleDischargingCommand(ctx context.Context, event eve
 	defer cancel()
 
 	if err := h.publisher.Publish(pubCtx, "discharging.started.v1", startedEvent); err != nil {
-		log.Printf("WARNING: Failed to publish DischargingStarted event: %v", err)
+		h.log.Warn("failed to publish discharging.started.v1 event", zap.Error(err))
 	}
 
-	log.Printf("Discharging command accepted: CurrentSoC=%.2f%%", state.SoC)
+	h.log.Info("discharging command accepted", zap.Float64("current_soc", state.SoC))
 	return nil
 }
 
 // HandleConflictResolved processes a conflict resolution event
 func (h *CommandHandler) HandleConflictResolved(ctx context.Context, event events.ConflictResolved) error {
-	log.Printf("Handling conflict resolved: ConflictID=%s, Action=%s", event.ConflictID, event.ChosenAction)
+	h.log.Info("handling conflict resolved",
+		zap.String("conflict_id", event.ConflictID),
+		zap.String("chosen_action", event.ChosenAction),
+	)
 
 	var cmd domain.Command
 
@@ -141,7 +157,7 @@ func (h *CommandHandler) HandleConflictResolved(ctx context.Context, event event
 		return fmt.Errorf("failed to send conflict resolution command: %w", err)
 	}
 
-	log.Printf("Conflict resolved: Action=%s", event.ChosenAction)
+	h.log.Info("conflict resolved", zap.String("chosen_action", event.ChosenAction))
 	return nil
 }
 
@@ -172,7 +188,7 @@ func (h *CommandHandler) OnEvent(subject string, data []byte) error {
 		return h.HandleConflictResolved(ctx, event)
 
 	default:
-		log.Printf("Unknown event subject: %s", subject)
+		h.log.Warn("unknown event subject", zap.String("subject", subject))
 		return nil
 	}
 }

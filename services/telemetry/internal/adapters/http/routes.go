@@ -2,10 +2,11 @@ package http
 
 import (
 	"github.com/gorilla/mux"
+	"go.uber.org/zap"
 )
 
 // SetupRoutes configures all HTTP routes
-func SetupRoutes(handler *TelemetryHandler, healthHandler *HealthHandler) *mux.Router {
+func SetupRoutes(handler *TelemetryHandler, healthHandler *HealthHandler, log *zap.Logger) *mux.Router {
 	router := mux.NewRouter()
 
 	// Health check endpoints

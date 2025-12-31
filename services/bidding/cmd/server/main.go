@@ -70,7 +70,7 @@ func main() {
 	log.Info("initialized in-memory caches")
 
 	// 5. Create bidding engine
-	engine := service.NewBiddingEngine(batteryCache, priceCache, publisher, cfg.AutomationMode)
+	engine := service.NewBiddingEngine(batteryCache, priceCache, publisher, cfg.AutomationMode, log)
 	log.Info("created bidding engine", zap.String("automation_mode", cfg.AutomationMode))
 
 	// 6. Setup event subscriptions

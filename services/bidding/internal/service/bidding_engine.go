@@ -3,8 +3,9 @@ package service
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
+
+	"go.uber.org/zap"
 
 	"github.com/minwook/battery-optimization/pkg/events"
 	"github.com/minwook/battery-optimization/services/bidding/internal/cache"
@@ -17,6 +18,7 @@ type BiddingEngine struct {
 	priceCache     *cache.PriceCache
 	publisher      events.EventPublisher
 	automationMode string // MANUAL, SEMI_AUTO, FULL_AUTO
+	log            *zap.Logger
 }
 
 // NewBiddingEngine creates a new bidding engine
@@ -25,12 +27,14 @@ func NewBiddingEngine(
 	priceCache *cache.PriceCache,
 	publisher events.EventPublisher,
 	automationMode string,
+	log *zap.Logger,
 ) *BiddingEngine {
 	return &BiddingEngine{
 		batteryCache:   batteryCache,
 		priceCache:     priceCache,
 		publisher:      publisher,
 		automationMode: automationMode,
+		log:            log,
 	}
 }
 
@@ -69,7 +73,7 @@ func (e *BiddingEngine) HandleMarketPriceUpdated(event events.MarketPriceUpdated
 	batteries := e.batteryCache.List()
 	for _, batteryState := range batteries {
 		if err := e.evaluateBattery(batteryState.BatteryID, batteryState, event.Price); err != nil {
-			log.Printf("WARNING: Failed to evaluate battery %s: %v", batteryState.BatteryID, err)
+			e.log.Warn("failed to evaluate battery", zap.String("battery_id", batteryState.BatteryID), zap.Error(err))
 		}
 	}
 
@@ -91,7 +95,7 @@ func (e *BiddingEngine) HandleBatteryRegistered(event events.BatteryRegistered) 
 	}
 	e.batteryCache.Update(event.BatteryID, defaultState)
 
-	log.Printf("Battery registered in bidding engine: %s", event.BatteryID)
+	e.log.Info("battery registered in bidding engine", zap.String("battery_id", event.BatteryID))
 	return nil
 }
 
@@ -128,7 +132,7 @@ func (e *BiddingEngine) handleChargingOpportunity(batteryID string, state cache.
 	}
 
 	if err := e.publishEvent("charging.opportunity.detected.v1", opportunityEvent); err != nil {
-		log.Printf("WARNING: Failed to publish charging opportunity: %v", err)
+		e.log.Warn("failed to publish charging opportunity", zap.Error(err))
 	}
 
 	// Publish command event if FULL_AUTO mode
@@ -144,7 +148,7 @@ func (e *BiddingEngine) handleChargingOpportunity(batteryID string, state cache.
 		}
 
 		if err := e.publishEvent("charging.command.issued.v1", commandEvent); err != nil {
-			log.Printf("WARNING: Failed to publish charging command: %v", err)
+			e.log.Warn("failed to publish charging command", zap.Error(err))
 		}
 	}
 
@@ -173,7 +177,7 @@ func (e *BiddingEngine) handleDischargingOpportunity(batteryID string, state cac
 	}
 
 	if err := e.publishEvent("discharging.opportunity.detected.v1", opportunityEvent); err != nil {
-		log.Printf("WARNING: Failed to publish discharging opportunity: %v", err)
+		e.log.Warn("failed to publish discharging opportunity", zap.Error(err))
 	}
 
 	// Publish command event if FULL_AUTO mode
@@ -194,7 +198,7 @@ func (e *BiddingEngine) handleDischargingOpportunity(batteryID string, state cac
 		}
 
 		if err := e.publishEvent("discharging.command.issued.v1", commandEvent); err != nil {
-			log.Printf("WARNING: Failed to publish discharging command: %v", err)
+			e.log.Warn("failed to publish discharging command", zap.Error(err))
 		}
 	}
 

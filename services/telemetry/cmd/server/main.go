@@ -94,14 +94,14 @@ func main() {
 	}
 
 	// 7. Create handlers
-	handler := httpAdapter.NewTelemetryHandler(repo)
+	handler := httpAdapter.NewTelemetryHandler(repo, log)
 	log.Info("HTTP handler initialized")
 
 	healthHandler := httpAdapter.NewHealthHandler(db, nil)
 	log.Info("health handler initialized")
 
 	// 8. Setup HTTP router
-	router := httpAdapter.SetupRoutes(handler, healthHandler)
+	router := httpAdapter.SetupRoutes(handler, healthHandler, log)
 	log.Info("routes configured")
 
 	// 9. Start State Publisher (1 Hz event publishing)

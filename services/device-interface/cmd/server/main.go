@@ -115,7 +115,7 @@ func main() {
 	// 6. Create command handler
 	var commandHandler *service.CommandHandler
 	if publisher != nil {
-		commandHandler = service.NewCommandHandler(adapter, publisher)
+		commandHandler = service.NewCommandHandler(adapter, publisher, log)
 		log.Info("command handler initialized")
 	}
 
