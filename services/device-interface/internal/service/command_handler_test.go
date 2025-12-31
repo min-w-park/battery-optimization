@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 
 	"github.com/minwook/battery-optimization/pkg/events"
 	"github.com/minwook/battery-optimization/services/device-interface/internal/domain"
@@ -67,7 +68,7 @@ func TestNewCommandHandler(t *testing.T) {
 	publisher := new(MockEventPublisher)
 
 	// When: Creating command handler
-	handler := NewCommandHandler(adapter, publisher)
+	handler := NewCommandHandler(adapter, publisher, zap.NewNop())
 
 	// Then: Handler is created correctly
 	assert.NotNil(t, handler)
@@ -79,7 +80,7 @@ func TestCommandHandler_HandleChargingCommand(t *testing.T) {
 	// Given: Mock dependencies
 	adapter := new(MockBatteryAdapter)
 	publisher := new(MockEventPublisher)
-	handler := NewCommandHandler(adapter, publisher)
+	handler := NewCommandHandler(adapter, publisher, zap.NewNop())
 
 	// Mock adapter state
 	adapter.On("GetState", mock.Anything).Return(domain.BatteryState{
@@ -136,7 +137,7 @@ func TestCommandHandler_HandleDischargingCommand(t *testing.T) {
 	// Given: Mock dependencies
 	adapter := new(MockBatteryAdapter)
 	publisher := new(MockEventPublisher)
-	handler := NewCommandHandler(adapter, publisher)
+	handler := NewCommandHandler(adapter, publisher, zap.NewNop())
 
 	// Mock adapter state
 	adapter.On("GetState", mock.Anything).Return(domain.BatteryState{
@@ -216,7 +217,7 @@ func TestCommandHandler_HandleConflictResolved(t *testing.T) {
 			// Given: Mock dependencies
 			adapter := new(MockBatteryAdapter)
 			publisher := new(MockEventPublisher)
-			handler := NewCommandHandler(adapter, publisher)
+			handler := NewCommandHandler(adapter, publisher, zap.NewNop())
 
 			// Mock command execution
 			adapter.On("SendCommand", mock.Anything, mock.MatchedBy(func(cmd domain.Command) bool {
@@ -246,7 +247,7 @@ func TestCommandHandler_OnEvent(t *testing.T) {
 	// Given: Mock dependencies and handler
 	adapter := new(MockBatteryAdapter)
 	publisher := new(MockEventPublisher)
-	handler := NewCommandHandler(adapter, publisher)
+	handler := NewCommandHandler(adapter, publisher, zap.NewNop())
 
 	tests := []struct {
 		name    string
@@ -304,7 +305,7 @@ func TestCommandHandler_OnEvent(t *testing.T) {
 			// Reset mocks
 			adapter = new(MockBatteryAdapter)
 			publisher = new(MockEventPublisher)
-			handler = NewCommandHandler(adapter, publisher)
+			handler = NewCommandHandler(adapter, publisher, zap.NewNop())
 
 			// Setup expectations
 			tt.setup()

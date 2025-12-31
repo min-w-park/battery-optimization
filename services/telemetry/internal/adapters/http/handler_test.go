@@ -13,6 +13,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 
 	"github.com/minwook/battery-optimization/services/telemetry/internal/domain"
 	"github.com/minwook/battery-optimization/services/telemetry/internal/ports"
@@ -74,7 +75,7 @@ func TestGetCurrentState_Success(t *testing.T) {
 			return testState, nil
 		},
 	}
-	handler := NewTelemetryHandler(mockRepo)
+	handler := NewTelemetryHandler(mockRepo, zap.NewNop())
 
 	// Setup router with path variable
 	router := mux.NewRouter()
@@ -106,7 +107,7 @@ func TestGetCurrentState_NotFound(t *testing.T) {
 			return nil, domain.ErrBatteryNotFound
 		},
 	}
-	handler := NewTelemetryHandler(mockRepo)
+	handler := NewTelemetryHandler(mockRepo, zap.NewNop())
 
 	router := mux.NewRouter()
 	router.HandleFunc("/api/v1/telemetry/{batteryId}/current", handler.GetCurrentState)
@@ -133,7 +134,7 @@ func TestGetCurrentState_InternalError(t *testing.T) {
 			return nil, errors.New("database connection failed")
 		},
 	}
-	handler := NewTelemetryHandler(mockRepo)
+	handler := NewTelemetryHandler(mockRepo, zap.NewNop())
 
 	router := mux.NewRouter()
 	router.HandleFunc("/api/v1/telemetry/{batteryId}/current", handler.GetCurrentState)
@@ -180,7 +181,7 @@ func TestGetHistory_Success(t *testing.T) {
 			return testStates, nil
 		},
 	}
-	handler := NewTelemetryHandler(mockRepo)
+	handler := NewTelemetryHandler(mockRepo, zap.NewNop())
 
 	router := mux.NewRouter()
 	router.HandleFunc("/api/v1/telemetry/{batteryId}/history", handler.GetHistory)
@@ -207,7 +208,7 @@ func TestGetHistory_Success(t *testing.T) {
 func TestGetHistory_MissingStartTime(t *testing.T) {
 	// Given: A handler with mock repository
 	mockRepo := &MockRepository{}
-	handler := NewTelemetryHandler(mockRepo)
+	handler := NewTelemetryHandler(mockRepo, zap.NewNop())
 
 	router := mux.NewRouter()
 	router.HandleFunc("/api/v1/telemetry/{batteryId}/history", handler.GetHistory)
@@ -231,7 +232,7 @@ func TestGetHistory_MissingStartTime(t *testing.T) {
 func TestGetHistory_MissingEndTime(t *testing.T) {
 	// Given: A handler with mock repository
 	mockRepo := &MockRepository{}
-	handler := NewTelemetryHandler(mockRepo)
+	handler := NewTelemetryHandler(mockRepo, zap.NewNop())
 
 	router := mux.NewRouter()
 	router.HandleFunc("/api/v1/telemetry/{batteryId}/history", handler.GetHistory)
@@ -255,7 +256,7 @@ func TestGetHistory_MissingEndTime(t *testing.T) {
 func TestGetHistory_InvalidTimeFormat(t *testing.T) {
 	// Given: A handler with mock repository
 	mockRepo := &MockRepository{}
-	handler := NewTelemetryHandler(mockRepo)
+	handler := NewTelemetryHandler(mockRepo, zap.NewNop())
 
 	router := mux.NewRouter()
 	router.HandleFunc("/api/v1/telemetry/{batteryId}/history", handler.GetHistory)
@@ -285,7 +286,7 @@ func TestGetHistory_WithPagination(t *testing.T) {
 			return []*domain.BatteryState{}, nil
 		},
 	}
-	handler := NewTelemetryHandler(mockRepo)
+	handler := NewTelemetryHandler(mockRepo, zap.NewNop())
 
 	router := mux.NewRouter()
 	router.HandleFunc("/api/v1/telemetry/{batteryId}/history", handler.GetHistory)

@@ -16,6 +16,10 @@ import (
 
 // setupTestDB creates a test database connection
 func setupTestDB(t *testing.T) *sql.DB {
+	if testing.Short() {
+		t.Skip("Skipping integration test in short mode")
+	}
+
 	// Connect to telemetry database (port 5434)
 	connStr := "postgres://telemetry_user:telemetry_pass@localhost:5434/telemetry?sslmode=disable"
 	db, err := sql.Open("postgres", connStr)

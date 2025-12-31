@@ -10,6 +10,7 @@ import (
 	"github.com/minwook/battery-optimization/services/bidding/internal/service"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 )
 
 // MockPublisher implements events.EventPublisher for testing
@@ -50,7 +51,7 @@ func TestHandleBatteryStateChanged_ChargingOpportunity(t *testing.T) {
 	priceCache := cache.NewPriceCache()
 	publisher := &MockPublisher{}
 
-	engine := service.NewBiddingEngine(batteryCache, priceCache, publisher, "FULL_AUTO")
+	engine := service.NewBiddingEngine(batteryCache, priceCache, publisher, "FULL_AUTO", zap.NewNop())
 
 	// Set up price (low price = charging opportunity)
 	priceCache.Update(30.0, time.Now())
@@ -97,7 +98,7 @@ func TestHandleBatteryStateChanged_DischargingOpportunity(t *testing.T) {
 	priceCache := cache.NewPriceCache()
 	publisher := &MockPublisher{}
 
-	engine := service.NewBiddingEngine(batteryCache, priceCache, publisher, "FULL_AUTO")
+	engine := service.NewBiddingEngine(batteryCache, priceCache, publisher, "FULL_AUTO", zap.NewNop())
 
 	// Set up price (high price = discharging opportunity)
 	priceCache.Update(150.0, time.Now())
@@ -145,7 +146,7 @@ func TestHandleBatteryStateChanged_NoOpportunity(t *testing.T) {
 	priceCache := cache.NewPriceCache()
 	publisher := &MockPublisher{}
 
-	engine := service.NewBiddingEngine(batteryCache, priceCache, publisher, "FULL_AUTO")
+	engine := service.NewBiddingEngine(batteryCache, priceCache, publisher, "FULL_AUTO", zap.NewNop())
 
 	// Set up mid-range price (no opportunity)
 	priceCache.Update(75.0, time.Now())
@@ -174,7 +175,7 @@ func TestHandleMarketPriceUpdated_TriggersDecision(t *testing.T) {
 	priceCache := cache.NewPriceCache()
 	publisher := &MockPublisher{}
 
-	engine := service.NewBiddingEngine(batteryCache, priceCache, publisher, "FULL_AUTO")
+	engine := service.NewBiddingEngine(batteryCache, priceCache, publisher, "FULL_AUTO", zap.NewNop())
 
 	// Add battery to cache first
 	batteryCache.Update("battery-123", cache.BatteryState{
@@ -209,7 +210,7 @@ func TestHandleBatteryRegistered_AddsToCache(t *testing.T) {
 	priceCache := cache.NewPriceCache()
 	publisher := &MockPublisher{}
 
-	engine := service.NewBiddingEngine(batteryCache, priceCache, publisher, "MANUAL")
+	engine := service.NewBiddingEngine(batteryCache, priceCache, publisher, "MANUAL", zap.NewNop())
 
 	event := events.BatteryRegistered{
 		BatteryID:    "battery-123",
@@ -249,7 +250,7 @@ func TestAutomationMode_Manual(t *testing.T) {
 	publisher := &MockPublisher{}
 
 	// MANUAL mode
-	engine := service.NewBiddingEngine(batteryCache, priceCache, publisher, "MANUAL")
+	engine := service.NewBiddingEngine(batteryCache, priceCache, publisher, "MANUAL", zap.NewNop())
 
 	priceCache.Update(30.0, time.Now())
 
@@ -279,7 +280,7 @@ func TestAutomationMode_FullAuto(t *testing.T) {
 	publisher := &MockPublisher{}
 
 	// FULL_AUTO mode
-	engine := service.NewBiddingEngine(batteryCache, priceCache, publisher, "FULL_AUTO")
+	engine := service.NewBiddingEngine(batteryCache, priceCache, publisher, "FULL_AUTO", zap.NewNop())
 
 	priceCache.Update(30.0, time.Now())
 
@@ -308,7 +309,7 @@ func TestNoPriceInCache(t *testing.T) {
 	priceCache := cache.NewPriceCache() // Empty
 	publisher := &MockPublisher{}
 
-	engine := service.NewBiddingEngine(batteryCache, priceCache, publisher, "FULL_AUTO")
+	engine := service.NewBiddingEngine(batteryCache, priceCache, publisher, "FULL_AUTO", zap.NewNop())
 
 	event := events.BatteryStateChanged{
 		BatteryID:      "battery-123",

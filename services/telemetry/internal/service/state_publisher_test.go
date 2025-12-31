@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 
 	"github.com/minwook/battery-optimization/pkg/events"
 	"github.com/minwook/battery-optimization/services/telemetry/internal/domain"
@@ -70,7 +71,7 @@ func TestNewStatePublisher(t *testing.T) {
 	batteryID := "battery-123"
 
 	// When: Creating state publisher
-	sp := NewStatePublisher(repo, publisher, batteryID)
+	sp := NewStatePublisher(repo, publisher, batteryID, zap.NewNop())
 
 	// Then: Publisher is created correctly
 	assert.NotNil(t, sp)
@@ -107,7 +108,7 @@ func TestStatePublisher_PublishOnce_Success(t *testing.T) {
 	// Mock publisher to succeed
 	publisher.On("Publish", mock.Anything, "battery.state.changed.v1", mock.Anything).Return(nil)
 
-	sp := NewStatePublisher(repo, publisher, batteryID)
+	sp := NewStatePublisher(repo, publisher, batteryID, zap.NewNop())
 
 	// When: Publishing once
 	ctx := context.Background()
@@ -143,7 +144,7 @@ func TestStatePublisher_PublishOnce_NoState(t *testing.T) {
 	// Mock repository to return no state (battery not found)
 	repo.On("GetCurrentState", mock.Anything, batteryID).Return(nil, domain.ErrBatteryNotFound)
 
-	sp := NewStatePublisher(repo, publisher, batteryID)
+	sp := NewStatePublisher(repo, publisher, batteryID, zap.NewNop())
 
 	// When: Publishing once with no state
 	ctx := context.Background()
@@ -181,7 +182,7 @@ func TestStatePublisher_PublishOnce_PublishError(t *testing.T) {
 	publishErr := errors.New("NATS connection lost")
 	publisher.On("Publish", mock.Anything, "battery.state.changed.v1", mock.Anything).Return(publishErr)
 
-	sp := NewStatePublisher(repo, publisher, batteryID)
+	sp := NewStatePublisher(repo, publisher, batteryID, zap.NewNop())
 
 	// When: Publishing fails
 	ctx := context.Background()
@@ -217,7 +218,7 @@ func TestStatePublisher_Start_ContextCancellation(t *testing.T) {
 	repo.On("GetCurrentState", mock.Anything, batteryID).Return(testState, nil).Maybe()
 	publisher.On("Publish", mock.Anything, "battery.state.changed.v1", mock.Anything).Return(nil).Maybe()
 
-	sp := NewStatePublisher(repo, publisher, batteryID)
+	sp := NewStatePublisher(repo, publisher, batteryID, zap.NewNop())
 
 	// When: Starting with cancellable context
 	ctx, cancel := context.WithCancel(context.Background())
@@ -269,7 +270,7 @@ func TestStatePublisher_Start_TickerFrequency(t *testing.T) {
 	repo.On("GetCurrentState", mock.Anything, batteryID).Return(testState, nil).Maybe()
 	publisher.On("Publish", mock.Anything, "battery.state.changed.v1", mock.Anything).Return(nil).Maybe()
 
-	sp := NewStatePublisher(repo, publisher, batteryID)
+	sp := NewStatePublisher(repo, publisher, batteryID, zap.NewNop())
 
 	// When: Running for ~2.5 seconds
 	ctx, cancel := context.WithTimeout(context.Background(), 2500*time.Millisecond)

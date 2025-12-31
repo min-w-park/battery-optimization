@@ -44,7 +44,6 @@
       "Bash(cat:*)",
       "Bash(xargs:*)",
       "Bash(git rm:*)",
-      "Bash(git push:*)",
       "Bash(git rebase:*)"
     ]
   }
