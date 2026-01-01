@@ -206,13 +206,13 @@ func (h *MarketPriceHandler) respondWithJSON(w http.ResponseWriter, statusCode i
 	if err != nil {
 		h.log.Error("failed to encode JSON response", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(`{"code":"INTERNAL_ERROR","message":"Failed to encode response"}`))
+		_, _ = w.Write([]byte(`{"code":"INTERNAL_ERROR","message":"Failed to encode response"}`))
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
-	w.Write(response)
+	_, _ = w.Write(response)
 }
 
 // respondWithError sends an error response

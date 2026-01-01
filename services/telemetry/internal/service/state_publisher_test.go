@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"sync"
 	"testing"
 	"time"
 
@@ -45,6 +46,7 @@ func (m *MockTelemetryRepository) GetHistory(ctx context.Context, batteryID stri
 // MockEventPublisher is a mock implementation of events.EventPublisher
 type MockEventPublisher struct {
 	mock.Mock
+	mu              sync.Mutex
 	PublishedEvents []PublishedEvent
 }
 
@@ -54,9 +56,26 @@ type PublishedEvent struct {
 }
 
 func (m *MockEventPublisher) Publish(ctx context.Context, subject string, event interface{}) error {
+	m.mu.Lock()
 	m.PublishedEvents = append(m.PublishedEvents, PublishedEvent{Subject: subject, Event: event})
+	m.mu.Unlock()
 	args := m.Called(ctx, subject, event)
 	return args.Error(0)
+}
+
+func (m *MockEventPublisher) GetPublishedEventCount() int {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return len(m.PublishedEvents)
+}
+
+func (m *MockEventPublisher) GetPublishedEvents() []PublishedEvent {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	// Return a copy to avoid race conditions
+	events := make([]PublishedEvent, len(m.PublishedEvents))
+	copy(events, m.PublishedEvents)
+	return events
 }
 
 func (m *MockEventPublisher) Close() error {
@@ -120,10 +139,11 @@ func TestStatePublisher_PublishOnce_Success(t *testing.T) {
 	publisher.AssertExpectations(t)
 
 	// Verify published event
-	require.Len(t, publisher.PublishedEvents, 1)
-	assert.Equal(t, "battery.state.changed.v1", publisher.PublishedEvents[0].Subject)
+	publishedEvents := publisher.GetPublishedEvents()
+	require.Len(t, publishedEvents, 1)
+	assert.Equal(t, "battery.state.changed.v1", publishedEvents[0].Subject)
 
-	event, ok := publisher.PublishedEvents[0].Event.(events.BatteryStateChanged)
+	event, ok := publishedEvents[0].Event.(events.BatteryStateChanged)
 	require.True(t, ok, "Event should be BatteryStateChanged")
 	assert.Equal(t, batteryID, event.BatteryID)
 	assert.Equal(t, 75.5, event.SoC)
@@ -155,7 +175,7 @@ func TestStatePublisher_PublishOnce_NoState(t *testing.T) {
 	assert.Equal(t, domain.ErrBatteryNotFound, err)
 	repo.AssertExpectations(t)
 	// Publisher should not be called
-	assert.Len(t, publisher.PublishedEvents, 0)
+	assert.Len(t, publisher.GetPublishedEvents(), 0)
 }
 
 func TestStatePublisher_PublishOnce_PublishError(t *testing.T) {
@@ -245,7 +265,7 @@ func TestStatePublisher_Start_ContextCancellation(t *testing.T) {
 	}
 
 	// Then: Should have published at least once (ticker fired after 1 second)
-	assert.GreaterOrEqual(t, len(publisher.PublishedEvents), 1, "Should have published at least one event")
+	assert.GreaterOrEqual(t, publisher.GetPublishedEventCount(), 1, "Should have published at least one event")
 }
 
 func TestStatePublisher_Start_TickerFrequency(t *testing.T) {
@@ -286,7 +306,7 @@ func TestStatePublisher_Start_TickerFrequency(t *testing.T) {
 
 	// Then: Should have published approximately 2-3 times (1 Hz = 1 per second)
 	// Allow some tolerance for timing
-	eventCount := len(publisher.PublishedEvents)
+	eventCount := publisher.GetPublishedEventCount()
 	assert.GreaterOrEqual(t, eventCount, 2, "Should publish at least 2 events in 2.5 seconds")
 	assert.LessOrEqual(t, eventCount, 4, "Should not publish more than 4 events in 2.5 seconds")
 }

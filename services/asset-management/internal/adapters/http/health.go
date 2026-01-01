@@ -30,7 +30,7 @@ func NewHealthHandler(db *sql.DB, natsConn *nats.Conn) *HealthHandler {
 func (h *HealthHandler) LivenessCheck(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{
+	_ = json.NewEncoder(w).Encode(map[string]string{
 		"status": "ok",
 		"service": "asset-management",
 	})
@@ -48,7 +48,7 @@ func (h *HealthHandler) ReadinessCheck(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.db.PingContext(ctx); err != nil {
 		w.WriteHeader(http.StatusServiceUnavailable)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "unavailable",
 			"service": "asset-management",
 			"checks": map[string]string{
@@ -68,7 +68,7 @@ func (h *HealthHandler) ReadinessCheck(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"status": "ready",
 		"service": "asset-management",
 		"checks": map[string]string{

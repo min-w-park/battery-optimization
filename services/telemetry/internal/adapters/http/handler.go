@@ -151,7 +151,7 @@ func (h *TelemetryHandler) respondWithJSON(w http.ResponseWriter, status int, pa
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	w.Write(response)
+	_, _ = w.Write(response)
 }
 
 // respondWithError writes an error response

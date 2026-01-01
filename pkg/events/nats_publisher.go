@@ -116,7 +116,7 @@ func (p *NATSPublisher) Publish(ctx context.Context, subject string, event inter
 func (p *NATSPublisher) Close() error {
 	if p.conn != nil && !p.conn.IsClosed() {
 		// Drain waits for pending messages to be sent
-		p.conn.Drain()
+		_ = p.conn.Drain()
 		// Close the connection
 		p.conn.Close()
 	}

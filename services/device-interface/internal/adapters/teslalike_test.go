@@ -115,7 +115,7 @@ func TestTeslaLike_SendCommand_Idle(t *testing.T) {
 		Type:  domain.CommandCharge,
 		Power: 15.0,
 	}
-	adapter.SendCommand(ctx, chargeCmd)
+	_ = adapter.SendCommand(ctx, chargeCmd)
 	time.Sleep(100 * time.Millisecond)
 
 	// When: Sending idle command
@@ -199,14 +199,14 @@ func TestTeslaLike_TemperatureCooling(t *testing.T) {
 		Type:  domain.CommandCharge,
 		Power: 50.0,
 	}
-	adapter.SendCommand(ctx, chargeCmd)
+	_ = adapter.SendCommand(ctx, chargeCmd)
 	time.Sleep(3 * time.Second)
 
 	// When: Switching to idle
 	idleCmd := domain.Command{
 		Type: domain.CommandIdle,
 	}
-	adapter.SendCommand(ctx, idleCmd)
+	_ = adapter.SendCommand(ctx, idleCmd)
 
 	// Wait for power to ramp down to zero (50 MW at 5 MW/s = 10 seconds)
 	time.Sleep(11 * time.Second)

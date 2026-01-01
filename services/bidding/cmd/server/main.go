@@ -32,7 +32,9 @@ func main() {
 	if err != nil {
 		panic(fmt.Sprintf("Failed to initialize logger: %v", err))
 	}
-	defer log.Sync()
+	defer func() {
+		_ = log.Sync() // Ignore error on cleanup
+	}()
 
 	log.Info("starting service",
 		zap.String("nats_url", cfg.NatsURL),

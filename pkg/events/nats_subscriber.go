@@ -112,7 +112,7 @@ func (s *NATSSubscriber) Subscribe(ctx context.Context, subject string, handler 
 		s.mu.Lock()
 		defer s.mu.Unlock()
 		if sub.IsValid() {
-			sub.Unsubscribe()
+			_ = sub.Unsubscribe()
 		}
 	}()
 
@@ -139,13 +139,13 @@ func (s *NATSSubscriber) Close() error {
 		// Unsubscribe from all subscriptions
 		for _, sub := range s.subscriptions {
 			if sub.IsValid() {
-				sub.Unsubscribe()
+				_ = sub.Unsubscribe()
 			}
 		}
 		s.subscriptions = nil
 
 		// Drain waits for pending messages to be processed
-		s.conn.Drain()
+		_ = s.conn.Drain()
 		// Close the connection
 		s.conn.Close()
 	}

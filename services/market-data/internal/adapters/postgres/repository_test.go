@@ -165,7 +165,6 @@ func TestListByTimeRange_NoFilters(t *testing.T) {
 	ctx := context.Background()
 
 	// Insert 10 prices across different regions and times
-	prices := []*domain.MarketPrice{}
 	for i := 0; i < 10; i++ {
 		intervalStart := time.Date(2026, 1, 15, 10+i/2, (i%2)*5, 0, 0, time.UTC)
 		publishedAt := time.Now().Add(-5 * time.Minute)
@@ -179,8 +178,6 @@ func TestListByTimeRange_NoFilters(t *testing.T) {
 
 		err = repo.Create(ctx, price)
 		require.NoError(t, err)
-
-		prices = append(prices, price)
 	}
 
 	// When
